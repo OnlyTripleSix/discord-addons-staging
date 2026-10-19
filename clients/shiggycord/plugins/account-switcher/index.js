@@ -7,7 +7,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const { instead } = V.patcher;
   const { storage } = V.plugin;
-  const VERSION = "2.3.0-shiggy";
+  const VERSION = "2.4.0-shiggy";
 
   storage.onlyActiveNotifications ??= true;
 
@@ -17,8 +17,13 @@
     actions: null,
     pushActions: null,
     notificationTokenManager: null,
+    receiveNotificationModule: null,
     pushUnpatch: null,
+    receiveUnpatch: null,
     notificationStatus: "starting",
+    blockedNotifications: 0,
+    lastBlockedAt: 0,
+    lastBlockedUserId: "",
     lastNativeSyncAt: 0,
     lastNativeSyncKey: "",
     lastSuccessfulKey: "",
@@ -97,6 +102,18 @@
       })
     );
 
+    if (!runtime.receiveNotificationModule) {
+      const module = findModule(candidate => {
+        const fn = candidate?.default;
+        if (typeof fn !== "function") return false;
+        if (fn.name === "receiveNotification") return true;
+        try { return String(fn).includes("receiving_user_id"); } catch { return false; }
+      });
+      if (module?.default && typeof module.default === "function") {
+        runtime.receiveNotificationModule = module;
+      }
+    }
+
     return runtime;
   }
 
@@ -165,6 +182,52 @@
     runtime.pushUnpatch = null;
   }
 
+  function uninstallReceiveFilter() {
+    if (!runtime.receiveUnpatch) return;
+    try { runtime.receiveUnpatch(); } catch {}
+    runtime.receiveUnpatch = null;
+  }
+
+  function installReceiveFilter() {
+    if (storage.onlyActiveNotifications !== true) {
+      uninstallReceiveFilter();
+      return false;
+    }
+    if (runtime.receiveUnpatch) return true;
+
+    resolveNotifications();
+    const module = runtime.receiveNotificationModule;
+    if (!module || typeof module.default !== "function") return false;
+
+    runtime.receiveUnpatch = instead("default", module, (args, original) => {
+      if (storage.onlyActiveNotifications !== true) return original(...args);
+
+      const source = args?.[0];
+      const getter = source?.getData;
+      if (typeof getter !== "function") return original(...args);
+
+      let data;
+      try { data = getter.call(source); }
+      catch { return original(...args); }
+
+      const receivingId = data?.receiving_user_id;
+      const active = currentId();
+
+      // Fail open when Discord does not identify the receiving account.
+      // Only suppress a push when both IDs are explicit and they disagree.
+      if (receivingId != null && active && String(receivingId) !== active) {
+        runtime.blockedNotifications += 1;
+        runtime.lastBlockedAt = Date.now();
+        runtime.lastBlockedUserId = String(receivingId);
+        return false;
+      }
+
+      return original(...args);
+    });
+
+    return true;
+  }
+
   function installPushPatch() {
     if (storage.onlyActiveNotifications !== true) {
       uninstallPushPatch();
@@ -221,7 +284,7 @@
           const tokenReady = !runtime.multiAccountStore?.canUseMultiAccountNotifications || activePushSyncTokenReady();
           if (syncResultSucceeded(response) && tokenReady) {
             runtime.lastSuccessfulKey = key;
-            runtime.notificationStatus = "active account only";
+            runtime.notificationStatus = "server sync complete";
           } else if (!tokenReady) {
             runtime.notificationStatus = "waiting for account push token";
           } else {
@@ -241,8 +304,13 @@
   }
 
   function applyPatchForMode() {
-    if (storage.onlyActiveNotifications === true) return installPushPatch();
+    if (storage.onlyActiveNotifications === true) {
+      const push = installPushPatch();
+      const local = installReceiveFilter();
+      return push || local;
+    }
     uninstallPushPatch();
+    uninstallReceiveFilter();
     return true;
   }
 
@@ -262,7 +330,7 @@
 
     const key = desiredSyncKey(activeOnly, token);
     if (!force && runtime.lastSuccessfulKey === key) {
-      runtime.notificationStatus = activeOnly ? "active account only" : "Discord default";
+      runtime.notificationStatus = activeOnly ? "server sync complete" : "Discord default";
       return true;
     }
 
@@ -295,7 +363,7 @@
       }
 
       runtime.lastSuccessfulKey = key;
-      runtime.notificationStatus = activeOnly ? "active account only" : "Discord default";
+      runtime.notificationStatus = activeOnly ? "server sync complete" : "Discord default";
       return true;
     } catch (error) {
       runtime.notificationStatus = `sync failed: ${error?.message ?? error}`;
@@ -336,7 +404,11 @@
       if (wait) await sleep(wait);
       resolveNotifications();
       applyPatchForMode();
-      if (runtime.pushActions && getPushToken()) break;
+      if (
+        runtime.pushActions
+        && getPushToken()
+        && (storage.onlyActiveNotifications !== true || runtime.receiveUnpatch)
+      ) break;
     }
 
     if (storage.onlyActiveNotifications === true) {
@@ -479,7 +551,7 @@
         React.createElement(RN.Text, {
           key: "desc",
           style: { color: C.muted, marginTop: 4, fontSize: 12, lineHeight: 17 },
-        }, "Keeps Android push registration on the active account while preserving Discord's native notification behavior."),
+        }, "Uses server registration plus a local receiving-account guard so inactive-account pushes are blocked even if Discord sends them."),
         React.createElement(RN.Text, {
           key: "status",
           style: {
@@ -488,7 +560,7 @@
             fontSize: 11,
             lineHeight: 16,
           },
-        }, `Status: ${runtime.notificationStatus}`),
+        }, `Status: ${runtime.notificationStatus} • local:${runtime.receiveUnpatch ? "armed" : "waiting"}${runtime.blockedNotifications ? ` • blocked ${runtime.blockedNotifications}` : ""}`),
       ]),
       React.createElement(RN.Switch, {
         key: "switch",
@@ -501,8 +573,8 @@
           requestSync(true)
             .then(ok => {
               toast(ok
-                ? (value ? "Only active account will notify" : "Multi-account notifications restored")
-                : "Notification sync is waiting for Discord");
+                ? (value ? "Active-account protection enabled" : "Multi-account notifications restored")
+                : "Notification protection is waiting for Discord");
               refresh();
             })
             .catch(() => {});
@@ -609,7 +681,7 @@
     children.push(React.createElement(RN.Text, {
       key: "version",
       style: { color: C.muted, fontSize: 12, lineHeight: 17 },
-    }, `v${VERSION} • switch:${canSwitch ? "yes" : "no"} • notifications:${storage.onlyActiveNotifications === true ? "active-only" : "default"}`));
+    }, `v${VERSION} • switch:${canSwitch ? "yes" : "no"} • notifications:${storage.onlyActiveNotifications === true ? "active-only" : "default"} • local:${runtime.receiveUnpatch ? "armed" : "waiting"} • blocked:${runtime.blockedNotifications}`));
 
     return React.createElement(
       RN.ScrollView ?? RN.View,
@@ -634,6 +706,7 @@
       if (runtime.switchFallbackTimer) clearTimeout(runtime.switchFallbackTimer);
 
       // Removing the plugin must not leave Discord registered in active-only mode.
+      uninstallReceiveFilter();
       if (storage.onlyActiveNotifications === true) restoreDiscordNotifications();
       else uninstallPushPatch();
     },

@@ -1,13 +1,13 @@
 {
   "name": "Account Switcher",
-  "description": "ShiggyCord account switcher with defense-in-depth active-account-only Android notifications using server registration and a local receiving-account guard.",
+  "description": "ShiggyCord account switcher with deterministic active-account notification isolation: detach outgoing device registration, explicit active-only sync, and local guard.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "061234db97afa10ce579b31bd9af4704cdd16bde",
+  "hash": "ddaf2a0a5da52616571576b9cb502d04601f7fe4",
   "vendetta": {
     "icon": "UserIcon"
   }

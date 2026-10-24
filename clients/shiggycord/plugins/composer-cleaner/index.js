@@ -1,12 +1,13 @@
 (() => {
   "use strict";
 
-  const { after } = vendetta.patcher;
+  const { before, after } = vendetta.patcher;
   const { find, findByName } = vendetta.metro;
   const { React, ReactNative: RN } = vendetta.metro.common;
   const { storage } = vendetta.plugin;
 
   const KEY = "__itsTripleSixComposerCleanerRuntime";
+  const VERSION = "1.1.0-shiggy";
   const DEFAULTS = {
     hideAttachment: false,
     hideGift: false,
@@ -25,6 +26,8 @@
     liveChatInput: null,
     frame: null,
     timer: null,
+    retryTimer: null,
+    retryStopTimer: null,
     initialRefreshPending: true,
     active: true,
     cleanup: null,
@@ -52,9 +55,12 @@
   function findComponent(name) {
     try {
       const found = find(module => (
-        module?.type?.displayName === name
+        module?.displayName === name
+        || module?.render?.displayName === name
+        || module?.type?.displayName === name
         || module?.type?.render?.displayName === name
         || module?.default?.displayName === name
+        || module?.default?.render?.displayName === name
         || module?.default?.type?.displayName === name
         || module?.default?.type?.render?.displayName === name
       ));
@@ -71,6 +77,16 @@
   function renderTarget(name) {
     const component = findComponent(name);
     if (!component) return null;
+
+    // Current Discord exports these composer surfaces as React.memo objects.
+    // The actual component function lives on ".type".
+    if (component.default?.type && typeof component.default.type === "function") {
+      return [component.default, "type"];
+    }
+    if (component.type && typeof component.type === "function") {
+      return [component, "type"];
+    }
+
     if (typeof component.default === "function") return [component, "default"];
     if (component.default?.type && typeof component.default.type.render === "function") return [component.default.type, "render"];
     if (component.default && typeof component.default.render === "function") return [component.default, "render"];
@@ -242,7 +258,25 @@
     if (!found) return false;
 
     const [target, method] = found;
+
+    // Prefer current Discord's explicit composer props where available.
+    // The tree cleaner remains as a compatibility fallback.
     runtime.patches.push(
+      before(method, target, args => {
+        const props = args?.[0];
+        if (!props || typeof props !== "object") return;
+
+        if (flag === "actions") {
+          if (storage.hideApps) props.isAppLauncherEnabled = false;
+          if (storage.hideThread) props.canStartThreads = false;
+        } else if (flag === "rightActions") {
+          if (storage.hideGift) props.shouldShowGiftButton = false;
+        } else if (flag === "sendButton") {
+          if (storage.hideMicrophone && "canSendVoiceMessage" in props) {
+            props.canSendVoiceMessage = false;
+          }
+        }
+      }),
       after(method, target, (_, result) =>
         React.createElement(component, {
           result,
@@ -362,6 +396,35 @@
       patch("ChatInputSendButton", "sendButton", CleanerOutput),
       patchGuard(),
     ];
+  }
+
+  function stopRetryWindow() {
+    if (runtime.retryTimer) clearInterval(runtime.retryTimer);
+    if (runtime.retryStopTimer) clearTimeout(runtime.retryStopTimer);
+    runtime.retryTimer = null;
+    runtime.retryStopTimer = null;
+  }
+
+  function patchesReady() {
+    return !!(
+      runtime.patched.actions
+      && runtime.patched.rightActions
+      && runtime.patched.sendButton
+    );
+  }
+
+  function startRetryWindow() {
+    stopRetryWindow();
+    const retry = () => {
+      if (!runtime.active) return;
+      install();
+      notify();
+      if (patchesReady()) stopRetryWindow();
+    };
+
+    retry();
+    runtime.retryTimer = setInterval(retry, 750);
+    runtime.retryStopTimer = setTimeout(stopRetryWindow, 30000);
   }
 
   const rows = [
@@ -521,6 +584,18 @@
         },
         "Changes apply immediately without typing or switching channels.",
       ),
+      React.createElement(
+        RN.Text,
+        {
+          style: {
+            color: "#80848E",
+            fontSize: 11,
+            lineHeight: 16,
+            marginTop: 8,
+          },
+        },
+        `v${VERSION} • actions:${runtime.patched.actions ? "yes" : "waiting"} • right:${runtime.patched.rightActions ? "yes" : "waiting"} • send:${runtime.patched.sendButton ? "yes" : "waiting"}`,
+      ),
     );
   }
 
@@ -528,6 +603,7 @@
     runtime.active = false;
     notify();
     cancelRefresh();
+    stopRetryWindow();
 
     while (runtime.patches.length) {
       try { runtime.patches.pop()?.(); } catch {}
@@ -547,10 +623,8 @@
   return {
     onLoad() {
       runtime.active = true;
-      const current = install();
-      if (![...early, ...current].some(Boolean)) {
-        throw new Error("Discord composer components were not found");
-      }
+      install();
+      startRetryWindow();
       notify();
     },
     onUnload: cleanup,

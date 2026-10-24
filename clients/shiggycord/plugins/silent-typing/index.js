@@ -13,6 +13,7 @@
   const DEFAULT_SLASH_COLOR = "#F23F42";
   const DEFAULT_ALPHA = 255;
   const CONFIG_VERSION = 2;
+  const VERSION = "1.1.0-shiggy";
 
   try {
     globalThis[RUNTIME_KEY]?.cleanup?.();
@@ -24,14 +25,32 @@
     leftPatched: false,
     rightPatched: false,
     typingPatched: false,
+    fluxPatched: false,
+    retryTimer: null,
+    retryStopTimer: null,
     cleanup: null,
   };
 
   globalThis[RUNTIME_KEY] = runtime;
 
-  const Typing =
-    findByProps("startTyping", "stopTyping")
-    ?? findByProps("startTyping");
+  function resolveTyping() {
+    try {
+      return findByProps("startTyping", "stopTyping")
+        ?? findByProps("startTyping");
+    } catch {
+      return null;
+    }
+  }
+
+  function resolveFluxDispatcher() {
+    try {
+      return vendetta.metro.common?.FluxDispatcher
+        ?? findByProps("dispatch", "subscribe", "unsubscribe")
+        ?? findByProps("dispatch", "subscribe");
+    } catch {
+      return null;
+    }
+  }
 
   const Toasts =
     vendetta.ui?.toasts
@@ -152,7 +171,16 @@
 
   function findRenderedComponent(name) {
     try {
-      const byDisplayName = find(module => module?.type?.displayName === name);
+      const byDisplayName = find(module => (
+        module?.displayName === name
+        || module?.render?.displayName === name
+        || module?.type?.displayName === name
+        || module?.type?.render?.displayName === name
+        || module?.default?.displayName === name
+        || module?.default?.render?.displayName === name
+        || module?.default?.type?.displayName === name
+        || module?.default?.type?.render?.displayName === name
+      ));
       if (byDisplayName) return byDisplayName;
     } catch {}
 
@@ -165,12 +193,27 @@
 
   function getRenderTarget(name) {
     const component = findRenderedComponent(name);
+    if (!component) return null;
 
-    if (component && typeof component.default === "function") {
-      return { target: component, method: "default" };
+    // Current Discord composer modules are React.memo wrappers.
+    if (component.default?.type && typeof component.default.type === "function") {
+      return { target: component.default, method: "type" };
+    }
+    if (component.type && typeof component.type === "function") {
+      return { target: component, method: "type" };
     }
 
-    const target = component?.type ?? component;
+    if (typeof component.default === "function") {
+      return { target: component, method: "default" };
+    }
+    if (component.default?.type && typeof component.default.type.render === "function") {
+      return { target: component.default.type, method: "render" };
+    }
+    if (component.default && typeof component.default.render === "function") {
+      return { target: component.default, method: "render" };
+    }
+
+    const target = component.type ?? component;
     if (target && typeof target.render === "function") {
       return { target, method: "render" };
     }
@@ -308,10 +351,31 @@
     return true;
   }
 
+  function patchFluxTyping() {
+    if (runtime.fluxPatched) return true;
+    const dispatcher = resolveFluxDispatcher();
+    if (typeof dispatcher?.dispatch !== "function") return false;
+
+    runtime.patches.push(
+      instead("dispatch", dispatcher, (args, original) => {
+        const event = args?.[0];
+        if (storage.enabled === true && event?.type === "TYPING_START_LOCAL") {
+          return;
+        }
+        return original(...args);
+      }),
+    );
+
+    runtime.fluxPatched = true;
+    return true;
+  }
+
   function patchTyping() {
     if (runtime.typingPatched) return true;
+    const Typing = resolveTyping();
     if (!Typing?.startTyping) return false;
 
+    // Legacy fallback for Discord builds that still route through startTyping.
     runtime.patches.push(
       instead("startTyping", Typing, (args, original) => {
         if (storage.enabled === true) return;
@@ -324,7 +388,33 @@
   }
 
   function installPatches() {
-    return [patchComposer(), patchTyping()];
+    return [patchComposer(), patchFluxTyping(), patchTyping()];
+  }
+
+  function stopRetryWindow() {
+    if (runtime.retryTimer) clearInterval(runtime.retryTimer);
+    if (runtime.retryStopTimer) clearTimeout(runtime.retryStopTimer);
+    runtime.retryTimer = null;
+    runtime.retryStopTimer = null;
+  }
+
+  function patchesReady() {
+    return !!(
+      (runtime.leftPatched || runtime.rightPatched)
+      && (runtime.fluxPatched || runtime.typingPatched)
+    );
+  }
+
+  function startRetryWindow() {
+    stopRetryWindow();
+    const retry = () => {
+      installPatches();
+      if (patchesReady()) stopRetryWindow();
+    };
+
+    retry();
+    runtime.retryTimer = setInterval(retry, 750);
+    runtime.retryStopTimer = setTimeout(stopRetryWindow, 30000);
   }
 
   function SettingRow({ title, description, control }) {
@@ -751,10 +841,23 @@
           "Reset all appearance settings",
         ),
       ),
+      React.createElement(
+        RN.Text,
+        {
+          style: {
+            color: "#80848E",
+            fontSize: 11,
+            lineHeight: 16,
+            marginTop: 12,
+          },
+        },
+        `v${VERSION} • left:${runtime.leftPatched ? "yes" : "waiting"} • right:${runtime.rightPatched ? "yes" : "waiting"} • flux:${runtime.fluxPatched ? "yes" : "waiting"} • legacy:${runtime.typingPatched ? "yes" : "waiting"}`,
+      ),
     );
   }
 
   function cleanup() {
+    stopRetryWindow();
     while (runtime.patches.length) {
       try {
         runtime.patches.pop()?.();
@@ -765,6 +868,7 @@
     runtime.leftPatched = false;
     runtime.rightPatched = false;
     runtime.typingPatched = false;
+    runtime.fluxPatched = false;
 
     if (globalThis[RUNTIME_KEY] === runtime) {
       try {
@@ -782,10 +886,8 @@
   return {
     onLoad() {
       migrateStorage();
-      const results = installPatches();
-      if (![...earlyResults, ...results].some(Boolean)) {
-        throw new Error("Discord composer components were not found");
-      }
+      installPatches();
+      startRetryWindow();
     },
 
     onUnload() {

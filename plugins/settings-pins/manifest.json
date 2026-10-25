@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Hardened against stale Discord settings-tree rows.",
+  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Repairs cached settings lists across cold starts.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "ece2b126bb0b15d3312fdefc3c3e4545dd9d41db",
+  "hash": "d5612ef77f292ae09f4053ebeb90678d6f95378c",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

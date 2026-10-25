@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.0.10-shiggy";
+  const VERSION = "1.0.11-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -21,6 +21,7 @@
   ]);
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
+  const settingsListRepairUnpatches = [];
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -278,12 +279,103 @@
     return true;
   }
 
+  function repairSettingsNode(node) {
+    if (!node || !Array.isArray(node.sections)) return node;
+
+    const rows = shiggyRows();
+    if (!Array.isArray(rows)) return node;
+
+    const desiredKeys = rows
+      .map(row => String(row?.key ?? ""))
+      .filter(Boolean);
+
+    if (!desiredKeys.some(key => key.startsWith(KEY_PREFIX))) return node;
+
+    let section = node.sections.find(candidate => {
+      if (!candidate || !Array.isArray(candidate.settings)) return false;
+      if (candidate.label === SECTION || candidate.title === SECTION) return true;
+      return candidate.settings.includes("SHIGGYCORD")
+        || candidate.settings.includes("BUNNY_PLUGINS");
+    });
+
+    if (!section) {
+      const accountIndex = node.sections.findIndex(candidate =>
+        Array.isArray(candidate?.settings) && candidate.settings.includes("ACCOUNT")
+      );
+      section = {
+        label: SECTION,
+        title: SECTION,
+        settings: desiredKeys.slice(),
+      };
+      node.sections.splice(accountIndex >= 0 ? accountIndex + 1 : 0, 0, section);
+      return node;
+    }
+
+    const current = Array.isArray(section.settings) ? section.settings : [];
+    const extras = current.filter(key => {
+      const value = String(key ?? "");
+      return value
+        && !value.startsWith(KEY_PREFIX)
+        && !desiredKeys.includes(value);
+    });
+
+    const next = [...desiredKeys, ...extras];
+    const unchanged = current.length === next.length
+      && current.every((value, index) => String(value ?? "") === next[index]);
+
+    if (!unchanged) {
+      if (Array.isArray(section.settings)) {
+        section.settings.splice(0, section.settings.length, ...next);
+      } else {
+        section.settings = next;
+      }
+    }
+
+    return node;
+  }
+
+  function installSettingsListRepair() {
+    if (settingsListRepairUnpatches.length) return true;
+
+    const findLazy = B?.metro?.findByFilePathLazy;
+    if (typeof findLazy !== "function") return false;
+
+    try {
+      const builders = findLazy(
+        "modules/settings/native/renderer/SettingBuilders.tsx",
+        false,
+      );
+      const rendererUtils = findLazy(
+        "modules/settings/native/renderer/SettingRendererUtils.tsx",
+        false,
+      );
+
+      settingsListRepairUnpatches.push(
+        V.patcher.after("createList", builders, (_args, result) => {
+          repairSettingsNode(result);
+          return result;
+        }),
+      );
+
+      settingsListRepairUnpatches.push(
+        V.patcher.before("toSettingListItems", rendererUtils, args => {
+          repairSettingsNode(args?.[0]);
+        }),
+      );
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function syncPins() {
     ensurePinState();
     const rows = shiggyRows();
     if (!rows) return false;
 
     installSettingsTreeGuard();
+    installSettingsListRepair();
     removeOurRows(rows);
     wrapExistingShortcuts(rows);
 
@@ -418,13 +510,19 @@
     onLoad() {
       ensurePinState();
       installSettingsTreeGuard();
+      installSettingsListRepair();
       syncPins();
+      try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },
     onUnload() {
       restoreExistingShortcuts();
       removeOurRows(shiggyRows());
       try { settingsTreeGuardUnpatch?.(); } catch {}
       settingsTreeGuardUnpatch = null;
+      while (settingsListRepairUnpatches.length) {
+        try { settingsListRepairUnpatches.pop()?.(); } catch {}
+      }
+      try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },
     settings: Settings,
   };

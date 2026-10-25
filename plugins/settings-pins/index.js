@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.0.8-shiggy";
+  const VERSION = "1.0.9-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -32,7 +32,15 @@
   };
 
   function toast(text) {
-    try { V.ui?.toasts?.showToast?.(String(text)); } catch {}
+    const value = String(text);
+    try {
+      const actions = V.metro?.common?.toasts;
+      if (typeof actions?.open === "function") {
+        actions.open(`its666-settings-pins-${Date.now()}`, { text: value });
+        return;
+      }
+    } catch {}
+    try { V.ui?.toasts?.showToast?.(value); } catch {}
   }
 
   function allPlugins() {
@@ -193,7 +201,7 @@
       }
       if (!navigation?.navigate) throw new Error("Navigation unavailable");
 
-      navigation.navigate("BUNNY_CUSTOM_PAGE", {
+      navigation.navigate("SHIGGYCORD_CUSTOM_PAGE", {
         title: String(plugin.manifest?.name ?? "Plugin Settings"),
         render: () => React.createElement(Component),
       });

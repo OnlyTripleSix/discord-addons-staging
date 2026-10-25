@@ -1,0 +1,21 @@
+{
+  "name": "Hide Call Buttons",
+  "description": "Reliably hides call and video controls across current Discord surfaces using ShiggyCord lazy module hooks.",
+  "authors": [
+    {
+      "name": "John",
+      "id": "780819226839220265"
+    },
+    {
+      "name": "bleelblep"
+    },
+    {
+      "name": "ItsTripleSix"
+    }
+  ],
+  "main": "index.js",
+  "hash": "59a79d0fe71e4bb5122265109e1ce5d8a7f6dbeb",
+  "vendetta": {
+    "icon": "PhoneCallIcon"
+  }
+}

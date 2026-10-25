@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.0.9-shiggy";
+  const VERSION = "1.0.10-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -20,6 +20,7 @@
     "BUNNY_DEVELOPER",
   ]);
   const originalExistingPredicates = new Map();
+  let settingsTreeGuardUnpatch = null;
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -220,6 +221,7 @@
       icon: iconFor(plugin),
       onPress: () => openPinnedPlugin(id),
       usePredicate: () => {
+        if (!isPinned(id)) return false;
         const live = allPlugins()[id];
         if (!live?.enabled) return false;
         try { return typeof V.plugins?.getSettings?.(id) === "function"; }
@@ -228,14 +230,71 @@
     };
   }
 
+  function findSettingsTreeManager() {
+    try {
+      const direct = V.metro?.findByProps?.("getAncestors", "isBlocked", "clearCaches")
+        ?? V.metro?.findByProps?.("getAncestors", "isBlocked");
+      if (direct?.isBlocked) return direct;
+      if (direct?.default?.isBlocked) return direct.default;
+    } catch {}
+
+    try {
+      const module = V.metro?.find?.(candidate => {
+        const value = candidate?.default ?? candidate;
+        return typeof value?.getAncestors === "function"
+          && typeof value?.isBlocked === "function";
+      });
+      const value = module?.default ?? module;
+      return typeof value?.isBlocked === "function" ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function installSettingsTreeGuard() {
+    if (settingsTreeGuardUnpatch) return true;
+
+    const manager = findSettingsTreeManager();
+    if (!manager || typeof manager.isBlocked !== "function") return false;
+
+    settingsTreeGuardUnpatch = V.patcher.instead("isBlocked", manager, (args, original) => {
+      const field = String(args?.[0] ?? "");
+      if (!field.startsWith(KEY_PREFIX)) return original(...args);
+
+      const stillRegistered = (shiggyRows() ?? [])
+        .some(row => String(row?.key ?? "") === field);
+      if (!stillRegistered) return true;
+
+      try {
+        return original(...args);
+      } catch {
+        // Discord's current SettingTreeManager assumes every setting key still
+        // has a renderer config entry. A stale Settings Pins key must be hidden,
+        // not allowed to crash the entire Settings overview.
+        return true;
+      }
+    });
+
+    return true;
+  }
+
   function syncPins() {
     ensurePinState();
     const rows = shiggyRows();
     if (!rows) return false;
 
+    installSettingsTreeGuard();
     removeOurRows(rows);
     wrapExistingShortcuts(rows);
-    const pinRows = currentPins().map(makePinRow).filter(Boolean);
+
+    // Keep every installed plugin's pin row registered for the lifetime of this
+    // plugin and let usePredicate control visibility. This prevents Discord's
+    // memoized settings/search tree from holding keys that we just removed.
+    const pinRows = Object.values(allPlugins())
+      .filter(plugin => plugin?.id)
+      .map(plugin => makePinRow(String(plugin.id)))
+      .filter(Boolean);
+
     if (!pinRows.length) return true;
 
     const pluginsIndex = rows.findIndex(row => row?.key === "BUNNY_PLUGINS");
@@ -358,11 +417,14 @@
   return {
     onLoad() {
       ensurePinState();
+      installSettingsTreeGuard();
       syncPins();
     },
     onUnload() {
       restoreExistingShortcuts();
       removeOurRows(shiggyRows());
+      try { settingsTreeGuardUnpatch?.(); } catch {}
+      settingsTreeGuardUnpatch = null;
     },
     settings: Settings,
   };

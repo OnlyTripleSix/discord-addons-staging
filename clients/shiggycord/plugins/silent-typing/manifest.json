@@ -1,13 +1,13 @@
 {
   "name": "Silent Typing",
-  "description": "Customizable silent typing toggle using ShiggyCord's safe Flux interceptor, current composer compatibility, and a temporary Discord toast compatibility shim.",
+  "description": "Customizable silent typing toggle using ShiggyCord's safe Flux interceptor, current composer compatibility, and current Discord toast API.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "f271b1b414b9f2dfd063e7cd08adcdba031f80df",
+  "hash": "82d19a7b250bae3930219b3d1f79437d66bcdfa9",
   "vendetta": {
     "icon": "KeyboardIcon"
   }

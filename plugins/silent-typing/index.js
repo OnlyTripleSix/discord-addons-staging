@@ -8,12 +8,13 @@
   const { storage } = vendetta.plugin;
 
   const RUNTIME_KEY = "__itsTripleSixSilentTypingRuntime";
+  const TOAST_COMPAT_KEY = "__itsTripleSixShiggyToastCompat";
   const DEFAULT_VISIBLE_COLOR = "#B5BAC1";
   const DEFAULT_SILENT_COLOR = "#B5BAC1";
   const DEFAULT_SLASH_COLOR = "#F23F42";
   const DEFAULT_ALPHA = 255;
   const CONFIG_VERSION = 2;
-  const VERSION = "1.1.1-shiggy";
+  const VERSION = "1.1.2-shiggy";
 
   try {
     globalThis[RUNTIME_KEY]?.cleanup?.();
@@ -32,6 +33,49 @@
   };
 
   globalThis[RUNTIME_KEY] = runtime;
+
+  function installToastCompat() {
+    try {
+      const current = globalThis[TOAST_COMPAT_KEY];
+      if (current?.active === true) return true;
+
+      const toastActions =
+        vendetta.metro.common?.toasts
+        ?? findByProps("open", "close");
+
+      if (!toastActions || typeof toastActions.open !== "function") return false;
+
+      const unpatch = instead("open", toastActions, (args, original) => {
+        // Current Discord uses open(key, toast). Older Vendetta/Shiggy code
+        // still calls open({ key, content, ... }), which passes undefined as
+        // the toast and crashes useToastContainer on toast.position.
+        if (args?.length === 1 && args[0] && typeof args[0] === "object") {
+          const legacy = args[0];
+          const text = legacy.text ?? legacy.content;
+          if (text != null) {
+            const key = String(legacy.key ?? `vd-toast-${Date.now()}`);
+            const toast = { text: String(text) };
+            if (legacy.position != null) toast.position = legacy.position;
+            if (legacy.duration != null) toast.duration = legacy.duration;
+            if (legacy.variant != null) toast.variant = legacy.variant;
+            if (legacy.surface != null) toast.surface = legacy.surface;
+            return original(key, toast);
+          }
+        }
+
+        return original(...args);
+      });
+
+      globalThis[TOAST_COMPAT_KEY] = {
+        active: true,
+        target: toastActions,
+        unpatch,
+      };
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   function resolveTyping() {
     try {
@@ -838,7 +882,7 @@
             marginTop: 12,
           },
         },
-        `v${VERSION} • left:${runtime.leftPatched ? "yes" : "waiting"} • right:${runtime.rightPatched ? "yes" : "waiting"} • flux:${runtime.fluxPatched ? "safe" : "waiting"} • legacy:${runtime.typingPatched ? "yes" : "waiting"}`,
+        `v${VERSION} • left:${runtime.leftPatched ? "yes" : "waiting"} • right:${runtime.rightPatched ? "yes" : "waiting"} • flux:${runtime.fluxPatched ? "safe" : "waiting"} • legacy:${runtime.typingPatched ? "yes" : "waiting"} • toast-fix:${globalThis[TOAST_COMPAT_KEY]?.active ? "yes" : "waiting"}`,
       ),
     );
   }
@@ -868,11 +912,13 @@
 
   runtime.cleanup = cleanup;
   migrateStorage();
+  installToastCompat();
   const earlyResults = installPatches();
 
   return {
     onLoad() {
       migrateStorage();
+      installToastCompat();
       installPatches();
       startRetryWindow();
     },

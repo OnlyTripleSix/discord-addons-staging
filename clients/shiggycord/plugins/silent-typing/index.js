@@ -216,7 +216,6 @@
             storage[storageKey] =
               `#${rgb.toString(16).padStart(6, "0").toUpperCase()}`;
             notifyRefresh();
-          showStateToast(next);
           },
         },
       );
@@ -347,6 +346,7 @@
           const next = !enabled;
           storage.enabled = next;
           notifyRefresh();
+          showStateToast(next);
         },
         hitSlop: { top: 8, bottom: 8, left: 8, right: 8 },
         style: {

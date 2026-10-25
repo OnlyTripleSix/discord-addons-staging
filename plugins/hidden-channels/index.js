@@ -387,7 +387,12 @@
       const peer = visiblePeer(channel);
       if (!peer) return result;
       try {
-        const peerMode = module.getChannelMode(peer);
+        const originalInput = args?.[0];
+        const peerInput =
+          originalInput && typeof originalInput === "object" && "channel" in originalInput
+            ? { ...originalInput, channel: peer }
+            : peer;
+        const peerMode = module.getChannelMode(peerInput);
         if (peerMode != null) {
           rt.modeSubstitutions += 1;
           return peerMode;

@@ -13,7 +13,7 @@
   const DEFAULT_SLASH_COLOR = "#F23F42";
   const DEFAULT_ALPHA = 255;
   const CONFIG_VERSION = 2;
-  const VERSION = "1.1.0-shiggy";
+  const VERSION = "1.1.1-shiggy";
 
   try {
     globalThis[RUNTIME_KEY]?.cleanup?.();
@@ -37,16 +37,6 @@
     try {
       return findByProps("startTyping", "stopTyping")
         ?? findByProps("startTyping");
-    } catch {
-      return null;
-    }
-  }
-
-  function resolveFluxDispatcher() {
-    try {
-      return vendetta.metro.common?.FluxDispatcher
-        ?? findByProps("dispatch", "subscribe", "unsubscribe")
-        ?? findByProps("dispatch", "subscribe");
     } catch {
       return null;
     }
@@ -290,7 +280,6 @@
           const next = !enabled;
           storage.enabled = next;
           notifyRefresh();
-          showStateToast(next);
         },
         hitSlop: { top: 8, bottom: 8, left: 8, right: 8 },
         style: {
@@ -353,19 +342,19 @@
 
   function patchFluxTyping() {
     if (runtime.fluxPatched) return true;
-    const dispatcher = resolveFluxDispatcher();
-    if (typeof dispatcher?.dispatch !== "function") return false;
 
-    runtime.patches.push(
-      instead("dispatch", dispatcher, (args, original) => {
-        const event = args?.[0];
-        if (storage.enabled === true && event?.type === "TYPING_START_LOCAL") {
-          return;
-        }
-        return original(...args);
-      }),
-    );
+    const intercept = globalThis.bunny?.api?.flux?.intercept;
+    if (typeof intercept !== "function") return false;
 
+    const unpatch = intercept(payload => {
+      if (storage.enabled === true && payload?.type === "TYPING_START_LOCAL") {
+        return false;
+      }
+      return undefined;
+    });
+
+    if (typeof unpatch !== "function") return false;
+    runtime.patches.push(unpatch);
     runtime.fluxPatched = true;
     return true;
   }
@@ -749,13 +738,11 @@
       }),
       React.createElement(SettingRow, {
         title: "Show confirmation popup",
-        description: "Shows Visible/Invisible confirmation whenever you tap the keyboard button.",
+        description: "Temporarily disabled on this Discord build because Discord's current toast surface crashes when invoked from this plugin.",
         control: React.createElement(RN.Switch, {
-          value: storage.showToast !== false,
-          onValueChange: value => {
-            storage.showToast = value;
-            forceRender();
-          },
+          value: false,
+          disabled: true,
+          onValueChange: () => {},
         }),
       }),
       React.createElement(SettingRow, {
@@ -851,7 +838,7 @@
             marginTop: 12,
           },
         },
-        `v${VERSION} • left:${runtime.leftPatched ? "yes" : "waiting"} • right:${runtime.rightPatched ? "yes" : "waiting"} • flux:${runtime.fluxPatched ? "yes" : "waiting"} • legacy:${runtime.typingPatched ? "yes" : "waiting"}`,
+        `v${VERSION} • left:${runtime.leftPatched ? "yes" : "waiting"} • right:${runtime.rightPatched ? "yes" : "waiting"} • flux:${runtime.fluxPatched ? "safe" : "waiting"} • legacy:${runtime.typingPatched ? "yes" : "waiting"}`,
       ),
     );
   }

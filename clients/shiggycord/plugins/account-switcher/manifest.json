@@ -1,13 +1,13 @@
 {
   "name": "Account Switcher",
-  "description": "ShiggyCord account switcher with deterministic active-account notification isolation: detach outgoing device registration, explicit active-only sync, and local guard.",
+  "description": "ShiggyCord account switcher with deterministic active-account notification isolation and current Discord toast compatibility.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "ddaf2a0a5da52616571576b9cb502d04601f7fe4",
+  "hash": "2b926bf3374b7c94f623013810cf6bf1e4dd1b6e",
   "vendetta": {
     "icon": "UserIcon"
   }

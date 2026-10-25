@@ -5,6 +5,7 @@
   const { findByProps, findByName } = vendetta.metro;
   const { React, ReactNative: RN } = vendetta.metro.common;
   const storage = vendetta.plugin.storage;
+  const VERSION = "1.0.1-shiggy";
   const findInReactTree = vendetta.utils?.findInReactTree;
   const showToast = vendetta.ui?.toasts?.showToast;
   const getAssetIDByName = vendetta.ui?.assets?.getAssetIDByName;
@@ -48,7 +49,15 @@
   const retryTimers = new Set();
 
   function toast(text) {
-    try { showToast?.(text, mockIcon); } catch {}
+    const value = String(text);
+    try {
+      const actions = vendetta.metro.common?.toasts;
+      if (typeof actions?.open === "function") {
+        actions.open(`its666-quick-mock-${Date.now()}`, { text: value });
+        return;
+      }
+    } catch {}
+    try { showToast?.(value, mockIcon); } catch {}
   }
 
   function mockify(value) {

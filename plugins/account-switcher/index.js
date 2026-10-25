@@ -7,7 +7,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const { instead } = V.patcher;
   const { storage } = V.plugin;
-  const VERSION = "2.5.0-shiggy";
+  const VERSION = "2.5.1-shiggy";
 
   storage.onlyActiveNotifications ??= true;
 
@@ -50,7 +50,15 @@
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   function toast(text) {
-    try { V.ui?.toasts?.showToast?.(String(text)); } catch {}
+    const value = String(text);
+    try {
+      const actions = V.metro?.common?.toasts;
+      if (typeof actions?.open === "function") {
+        actions.open(`its666-account-switcher-${Date.now()}`, { text: value });
+        return;
+      }
+    } catch {}
+    try { V.ui?.toasts?.showToast?.(value); } catch {}
   }
 
   function find(...props) {

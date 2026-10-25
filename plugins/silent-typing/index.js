@@ -14,7 +14,7 @@
   const DEFAULT_SLASH_COLOR = "#F23F42";
   const DEFAULT_ALPHA = 255;
   const CONFIG_VERSION = 2;
-  const VERSION = "1.1.2-shiggy";
+  const VERSION = "1.1.3-shiggy";
 
   try {
     globalThis[RUNTIME_KEY]?.cleanup?.();
@@ -171,6 +171,28 @@
       : "Disabled Silent Typing — You are Now Visible";
 
     try {
+      const toastActions =
+        vendetta.metro.common?.toasts
+        ?? findByProps("open", "close");
+
+      if (typeof toastActions?.open === "function") {
+        const key = `silent-typing-${enabled ? "on" : "off"}-${Date.now()}`;
+
+        if (toastActions.open.length >= 2) {
+          toastActions.open(key, { text });
+          return;
+        }
+
+        toastActions.open({
+          key,
+          content: text,
+          text,
+          source: getAssetIDByName("KeyboardIcon") ?? getAssetIDByName("ChatIcon"),
+          icon: getAssetIDByName("KeyboardIcon") ?? getAssetIDByName("ChatIcon"),
+        });
+        return;
+      }
+
       Toasts?.showToast?.(
         text,
         getAssetIDByName("KeyboardIcon") ?? getAssetIDByName("ChatIcon"),
@@ -194,6 +216,7 @@
             storage[storageKey] =
               `#${rgb.toString(16).padStart(6, "0").toUpperCase()}`;
             notifyRefresh();
+          showStateToast(next);
           },
         },
       );
@@ -782,11 +805,13 @@
       }),
       React.createElement(SettingRow, {
         title: "Show confirmation popup",
-        description: "Temporarily disabled on this Discord build because Discord's current toast surface crashes when invoked from this plugin.",
+        description: "Shows Visible/Invisible confirmation whenever you tap the keyboard button.",
         control: React.createElement(RN.Switch, {
-          value: false,
-          disabled: true,
-          onValueChange: () => {},
+          value: storage.showToast !== false,
+          onValueChange: value => {
+            storage.showToast = value;
+            forceRender();
+          },
         }),
       }),
       React.createElement(SettingRow, {

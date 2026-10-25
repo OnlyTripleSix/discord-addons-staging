@@ -1,13 +1,13 @@
 {
   "name": "Silent Typing",
-  "description": "Customizable silent typing toggle using current Flux typing suppression with composer compatibility fallbacks.",
+  "description": "Customizable silent typing toggle using ShiggyCord's safe Flux interceptor, current composer compatibility, and a legacy fallback.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "4e653e1fe9159c3969291fe1beb18eadf0bd22a0",
+  "hash": "74393bf88a33c3807701fe71822ae2b54f00414c",
   "vendetta": {
     "icon": "KeyboardIcon"
   }

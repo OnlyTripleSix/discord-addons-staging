@@ -1,13 +1,13 @@
 {
   "name": "Purge Tools",
-  "description": "ShiggyCord Purge Tools with conservative shared pacing, transient 5xx retry/recovery accounting, previews, media protection, verification, and account-scoped resume checkpoints.",
+  "description": "ShiggyCord Purge Tools with conservative shared pacing, transient 5xx retry/recovery accounting, previews, media protection, verification, account-scoped resume checkpoints, and current Discord toast compatibility.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "d348a7fe39ff3ae03eecfb0cb94e9ba526675b84",
+  "hash": "9a8c2965b3a43ad25c30168c1db7d43205781dd4",
   "vendetta": {
     "icon": "TrashIcon"
   }

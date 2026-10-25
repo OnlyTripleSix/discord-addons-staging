@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Changes apply after ReShiggy.",
+  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts, using the current ShiggyCord settings route and Discord toast API.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "1934179641230d0f4f5c8361d8545bc1d292feb7",
+  "hash": "934655c33610f05d61863d5ce19a33a9df5c1252",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

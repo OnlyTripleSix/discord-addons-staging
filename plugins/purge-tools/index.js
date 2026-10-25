@@ -13,7 +13,7 @@
   const VERIFY_PASSES = 3;
   const TRANSIENT_RETRIES = 2;
   const TRANSIENT_RETRY_BASE_MS = 1000;
-  const PLUGIN_VERSION = "1.2.10-shiggy";
+  const PLUGIN_VERSION = "1.2.11-shiggy";
   const BULK_MAX = 100;
   const BULK_SAFE_AGE_MS = 14 * 24 * 60 * 60 * 1000 - 5 * 60 * 1000;
   const JOB_VERSION = 3;
@@ -77,7 +77,17 @@
     progress = next;
     notify();
   }
-  function toast(text) { try { V.ui.toasts.showToast(String(text)); } catch {} }
+  function toast(text) {
+    const value = String(text);
+    try {
+      const actions = V.metro?.common?.toasts;
+      if (typeof actions?.open === "function") {
+        actions.open(`its666-purge-tools-${Date.now()}`, { text: value });
+        return;
+      }
+    } catch {}
+    try { V.ui?.toasts?.showToast?.(value); } catch {}
+  }
   function sleep(ms) { return new Promise(resolve => setTimeout(resolve, Math.max(0, ms))); }
   function clone(value) { return value == null ? value : JSON.parse(JSON.stringify(value)); }
 

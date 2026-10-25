@@ -1,13 +1,13 @@
 {
   "name": "Quick Mock",
-  "description": "Quickly mOcK message text with /mock, reply-to-mock, or a long-press message action.",
+  "description": "Quickly mOcK message text with /mock, reply-to-mock, or a long-press message action, with current Discord toast compatibility.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "fe321423c815fa6545d48bc20d13d4a601f72216",
+  "hash": "afbcc4df778149992324e81af351a8d23ed197dc",
   "vendetta": {
     "icon": "PencilIcon"
   }

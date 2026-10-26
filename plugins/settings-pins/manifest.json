@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Repairs cached settings lists across cold starts.",
+  "description": "Pin plugin settings into ShiggyCord by repairing the live settings node before Discord resolves row renderer data.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "d5612ef77f292ae09f4053ebeb90678d6f95378c",
+  "hash": "282cb936c8294089e21b38dab27c2ac7292c49f0",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

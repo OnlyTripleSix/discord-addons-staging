@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord by patching the live SettingRendererUtils module and injecting selected rows into Discord's final settings list.",
+  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Repairs cached settings lists across cold starts.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "77a13f1ded7b98f4970345ebc5defe4eae4686a7",
+  "hash": "d5612ef77f292ae09f4053ebeb90678d6f95378c",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

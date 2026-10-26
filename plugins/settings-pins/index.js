@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.2.1-shiggy";
+  const VERSION = "1.0.11-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -22,7 +22,6 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
-  const diagnostics = { settingsListPatches: 0, settingsListHits: 0, utilsPatches: 0, utilsHits: 0 };
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -222,7 +221,13 @@
       title: () => String(allPlugins()[id]?.manifest?.name ?? plugin.manifest?.name ?? "Plugin"),
       icon: iconFor(plugin),
       onPress: () => openPinnedPlugin(id),
-      usePredicate: () => isPinned(id),
+      usePredicate: () => {
+        if (!isPinned(id)) return false;
+        const live = allPlugins()[id];
+        if (!live?.enabled) return false;
+        try { return typeof V.plugins?.getSettings?.(id) === "function"; }
+        catch { return false; }
+      },
     };
   }
 
@@ -257,15 +262,16 @@
       const field = String(args?.[0] ?? "");
       if (!field.startsWith(KEY_PREFIX)) return original(...args);
 
-      const row = (shiggyRows() ?? [])
-        .find(candidate => String(candidate?.key ?? "") === field);
-      if (!row) return true;
+      const stillRegistered = (shiggyRows() ?? [])
+        .some(row => String(row?.key ?? "") === field);
+      if (!stillRegistered) return true;
 
       try {
-        return typeof row.usePredicate === "function"
-          ? !row.usePredicate()
-          : false;
+        return original(...args);
       } catch {
+        // Discord's current SettingTreeManager assumes every setting key still
+        // has a renderer config entry. A stale Settings Pins key must be hidden,
+        // not allowed to crash the entire Settings overview.
         return true;
       }
     });
@@ -273,119 +279,90 @@
     return true;
   }
 
-  function rendererConfigFor(key) {
-    try {
-      const constants = V.metro?.findByProps?.("SETTING_RENDERER_CONFIG");
-      return constants?.SETTING_RENDERER_CONFIG?.[key] ?? null;
-    } catch {
-      return null;
+  function repairSettingsNode(node) {
+    if (!node || !Array.isArray(node.sections)) return node;
+
+    const rows = shiggyRows();
+    if (!Array.isArray(rows)) return node;
+
+    const desiredKeys = rows
+      .map(row => String(row?.key ?? ""))
+      .filter(Boolean);
+
+    if (!desiredKeys.some(key => key.startsWith(KEY_PREFIX))) return node;
+
+    let section = node.sections.find(candidate => {
+      if (!candidate || !Array.isArray(candidate.settings)) return false;
+      if (candidate.label === SECTION || candidate.title === SECTION) return true;
+      return candidate.settings.includes("SHIGGYCORD")
+        || candidate.settings.includes("BUNNY_PLUGINS");
+    });
+
+    if (!section) {
+      const accountIndex = node.sections.findIndex(candidate =>
+        Array.isArray(candidate?.settings) && candidate.settings.includes("ACCOUNT")
+      );
+      section = {
+        label: SECTION,
+        title: SECTION,
+        settings: desiredKeys.slice(),
+      };
+      node.sections.splice(accountIndex >= 0 ? accountIndex + 1 : 0, 0, section);
+      return node;
     }
-  }
 
-  function injectPinRows(items) {
-    if (!Array.isArray(items)) return items;
+    const current = Array.isArray(section.settings) ? section.settings : [];
+    const extras = current.filter(key => {
+      const value = String(key ?? "");
+      return value
+        && !value.startsWith(KEY_PREFIX)
+        && !desiredKeys.includes(value);
+    });
 
-    try { syncPins(); } catch {}
+    const next = [...desiredKeys, ...extras];
+    const unchanged = current.length === next.length
+      && current.every((value, index) => String(value ?? "") === next[index]);
 
-    // Remove stale copies first.
-    for (let i = items.length - 1; i >= 0; i -= 1) {
-      if (String(items[i]?.setting ?? "").startsWith(KEY_PREFIX)) {
-        items.splice(i, 1);
+    if (!unchanged) {
+      if (Array.isArray(section.settings)) {
+        section.settings.splice(0, section.settings.length, ...next);
+      } else {
+        section.settings = next;
       }
     }
 
-    const ids = currentPins().filter(id => allPlugins()[id]);
-    if (!ids.length) return items;
-
-    let anchor = items.findIndex(item => item?.setting === "BUNNY_PLUGINS");
-    if (anchor < 0) anchor = items.findIndex(item => item?.setting === "SHIGGYCORD");
-    if (anchor < 0) return items;
-
-    const rowType = items[anchor]?.type;
-    if (rowType == null) return items;
-
-    const rows = [];
-    for (const id of ids) {
-      const key = pinRowKey(id);
-      const settingData = rendererConfigFor(key);
-      if (!settingData) continue;
-
-      rows.push({
-        type: rowType,
-        setting: key,
-        settingData,
-        start: false,
-        end: false,
-      });
-    }
-
-    if (!rows.length) return items;
-
-    const nextIsSameType = items[anchor + 1]?.type === rowType;
-    if (items[anchor]?.end === true) items[anchor].end = false;
-    rows[rows.length - 1].end = !nextIsSameType;
-    items.splice(anchor + 1, 0, ...rows);
-    return items;
-  }
-
-  function patchRendererUtils(module) {
-    if (!module || typeof module.toSettingListItems !== "function") return false;
-
-    try {
-      const unpatch = V.patcher.after(
-        "toSettingListItems",
-        module,
-        (_args, result) => {
-          diagnostics.utilsHits += 1;
-          try { return injectPinRows(result); }
-          catch { return result; }
-        },
-      );
-      settingsListRepairUnpatches.push(unpatch);
-      diagnostics.utilsPatches += 1;
-      return true;
-    } catch {
-      return false;
-    }
+    return node;
   }
 
   function installSettingsListRepair() {
     if (settingsListRepairUnpatches.length) return true;
 
-    const path = "modules/settings/native/renderer/SettingRendererUtils.tsx";
-
-    // First choice: patch the actual initialized module object. This avoids
-    // relying on a lazy proxy to forward the patch correctly.
-    try {
-      const direct = B?.metro?.findByFilePath?.(path, false);
-      if (patchRendererUtils(direct)) return true;
-    } catch {}
+    const findLazy = B?.metro?.findByFilePathLazy;
+    if (typeof findLazy !== "function") return false;
 
     try {
-      const byProps = V.metro?.findByProps?.(
-        "toSettingListItems",
-        "getSettingScreens",
+      const builders = findLazy(
+        "modules/settings/native/renderer/SettingBuilders.tsx",
+        false,
       );
-      if (patchRendererUtils(byProps)) return true;
-    } catch {}
+      const rendererUtils = findLazy(
+        "modules/settings/native/renderer/SettingRendererUtils.tsx",
+        false,
+      );
 
-    // Last resort: subscribe until the exact module initializes, then patch
-    // the real exports object delivered by ShiggyCord's lazy context.
-    try {
-      const lazy = B?.metro?.findByFilePathLazy?.(path, false);
-      const delay = lazy?.[Symbol.for("bunny.api.patcher.delay")];
-      if (typeof delay !== "function") return false;
+      settingsListRepairUnpatches.push(
+        V.patcher.after("createList", builders, (_args, result) => {
+          repairSettingsNode(result);
+          return result;
+        }),
+      );
 
-      let cancelled = false;
-      const dispose = delay(module => {
-        if (cancelled) return;
-        try { patchRendererUtils(module); } catch {}
-      });
+      settingsListRepairUnpatches.push(
+        V.patcher.before("toSettingListItems", rendererUtils, args => {
+          repairSettingsNode(args?.[0]);
+        }),
+      );
 
-      settingsListRepairUnpatches.push(() => {
-        cancelled = true;
-        try { dispose?.(); } catch {}
-      });
       return true;
     } catch {
       return false;
@@ -525,7 +502,7 @@
       ] : []),
       React.createElement(RN.Text, {
         style: { color: C.muted, fontSize: 12, marginTop: 14 },
-      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • utils:${diagnostics.utilsPatches} • hits:${diagnostics.utilsHits}`),
+      }, `v${VERSION}`),
     );
   }
 

@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord by repairing the live settings node before Discord resolves row renderer data.",
+  "description": "Pin plugin settings into ShiggyCord with a direct renderer-config bridge and live settings-node repair.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "7a0cb856b97e21aed1687749d8c9b553fbada433",
+  "hash": "c72b99bfdfe54dce08de80c24cda02e3f37e139c",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

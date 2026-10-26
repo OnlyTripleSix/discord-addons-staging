@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.2.4-shiggy";
+  const VERSION = "1.3.0-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -21,11 +21,11 @@
   ]);
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
+  let rendererConfigBridgeUnpatch = null;
   const settingsListRepairUnpatches = [];
-  const diagnostics = { utilsPatches: 0, utilsHits: 0, validPins: 0, repairs: 0 };
+  const diagnostics = { utilsPatches: 0, utilsHits: 0, validPins: 0, repairs: 0, bridge: 0 };
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
-  const rendererConstants = B?.metro?.findByPropsLazy?.("SETTING_RENDERER_CONFIG") ?? null;
 
   const C = {
     bg: "#111214",
@@ -227,12 +227,99 @@
     };
   }
 
-  function rendererConfigFor(key) {
-    // This is intentionally the exact lookup ShiggyCord itself uses in
-    // patchTabsUI(). Its lazy proxy resolves the same exports object whose
-    // SETTING_RENDERER_CONFIG property ShiggyCord replaced with a dynamic getter.
+  function pinRendererData(id) {
+    const plugin = allPlugins()[id];
+    if (!plugin) return null;
+
+    const title = () => String(
+      allPlugins()[id]?.manifest?.name
+      ?? plugin.manifest?.name
+      ?? "Plugin"
+    );
+
+    return {
+      type: "pressable",
+      title,
+      useTitle: title,
+      usePredicate: () => isPinned(id),
+      onPress: () => openPinnedPlugin(id),
+      withArrow: true,
+    };
+  }
+
+  function findRendererConfigModule() {
     try {
-      return rendererConstants?.SETTING_RENDERER_CONFIG?.[key] ?? null;
+      const exact = B?.metro?.findByFilePath?.(
+        "modules/user_settings/core/native/SettingsRendererConfig.tsx",
+        false,
+      );
+      if (exact?.SETTING_RENDERER_CONFIG) return exact;
+    } catch {}
+
+    try {
+      const found = V.metro?.findByProps?.("SETTING_RENDERER_CONFIG");
+      if (found?.SETTING_RENDERER_CONFIG) return found;
+    } catch {}
+
+    return null;
+  }
+
+  function installRendererConfigBridge() {
+    if (rendererConfigBridgeUnpatch) return true;
+
+    const module = findRendererConfigModule();
+    if (!module) return false;
+
+    const descriptor = Object.getOwnPropertyDescriptor(
+      module,
+      "SETTING_RENDERER_CONFIG",
+    );
+    if (!descriptor || descriptor.configurable === false) return false;
+
+    const readBase = descriptor.get
+      ? () => descriptor.get.call(module)
+      : () => descriptor.value;
+
+    const writeBase = descriptor.set
+      ? value => descriptor.set.call(module, value)
+      : null;
+
+    try {
+      Object.defineProperty(module, "SETTING_RENDERER_CONFIG", {
+        enumerable: descriptor.enumerable ?? true,
+        configurable: true,
+        get() {
+          const base = readBase() ?? {};
+          const merged = { ...base };
+
+          for (const plugin of Object.values(allPlugins())) {
+            if (!plugin?.id) continue;
+            const id = String(plugin.id);
+            const data = pinRendererData(id);
+            if (data) merged[pinRowKey(id)] = data;
+          }
+
+          return merged;
+        },
+        ...(writeBase ? { set: writeBase } : {}),
+      });
+
+      rendererConfigBridgeUnpatch = () => {
+        try {
+          Object.defineProperty(module, "SETTING_RENDERER_CONFIG", descriptor);
+        } catch {}
+      };
+      diagnostics.bridge = 1;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function rendererConfigFor(key) {
+    try {
+      const module = findRendererConfigModule();
+      return module?.SETTING_RENDERER_CONFIG?.[key] ?? null;
     } catch {
       return null;
     }
@@ -442,6 +529,7 @@
 
   function syncPins() {
     ensurePinState();
+    installRendererConfigBridge();
     const rows = shiggyRows();
     if (!rows) return false;
 
@@ -573,13 +661,14 @@
       ] : []),
       React.createElement(RN.Text, {
         style: { color: C.muted, fontSize: 12, marginTop: 14 },
-      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • valid:${diagnostics.validPins} • utils:${diagnostics.utilsPatches} • hits:${diagnostics.utilsHits} • repairs:${diagnostics.repairs}`),
+      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • valid:${diagnostics.validPins} • bridge:${diagnostics.bridge} • utils:${diagnostics.utilsPatches} • hits:${diagnostics.utilsHits} • repairs:${diagnostics.repairs}`),
     );
   }
 
   return {
     onLoad() {
       ensurePinState();
+      installRendererConfigBridge();
       installSettingsTreeGuard();
       installSettingsListRepair();
       syncPins();
@@ -593,6 +682,9 @@
       while (settingsListRepairUnpatches.length) {
         try { settingsListRepairUnpatches.pop()?.(); } catch {}
       }
+      try { rendererConfigBridgeUnpatch?.(); } catch {}
+      rendererConfigBridgeUnpatch = null;
+      diagnostics.bridge = 0;
       try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },
     settings: Settings,

@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.2.2-shiggy";
+  const VERSION = "1.2.3-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -227,6 +227,18 @@
   }
 
   function rendererConfigFor(key) {
+    // Use the exact module Discord's SettingRendererUtils imports. ShiggyCord
+    // replaces SETTING_RENDERER_CONFIG on this exports object with a dynamic
+    // getter that includes registered plugin rows.
+    try {
+      const module = B?.metro?.findByFilePath?.(
+        "modules/user_settings/core/native/SettingsRendererConfig.tsx",
+        false,
+      );
+      const config = module?.SETTING_RENDERER_CONFIG?.[key];
+      if (config) return config;
+    } catch {}
+
     try {
       const constants = V.metro?.findByProps?.("SETTING_RENDERER_CONFIG");
       return constants?.SETTING_RENDERER_CONFIG?.[key] ?? null;

@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.0.11-shiggy";
+  const VERSION = "1.0.12-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -22,6 +22,7 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
+  const startupRetryTimers = [];
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -352,6 +353,9 @@
 
       settingsListRepairUnpatches.push(
         V.patcher.after("createList", builders, (_args, result) => {
+          // Discord can build Settings before ShiggyCord's registered section
+          // array is ready. Re-assert the rows at the exact point a list exists.
+          try { syncPins(); } catch {}
           repairSettingsNode(result);
           return result;
         }),
@@ -359,6 +363,8 @@
 
       settingsListRepairUnpatches.push(
         V.patcher.before("toSettingListItems", rendererUtils, args => {
+          // This also covers cached Settings nodes recreated after a cold start.
+          try { syncPins(); } catch {}
           repairSettingsNode(args?.[0]);
         }),
       );
@@ -371,11 +377,14 @@
 
   function syncPins() {
     ensurePinState();
-    const rows = shiggyRows();
-    if (!rows) return false;
 
+    // Arm lifecycle hooks even when ShiggyCord's own settings rows are not
+    // available yet. v1.0.11 returned too early here and never recovered.
     installSettingsTreeGuard();
     installSettingsListRepair();
+
+    const rows = shiggyRows();
+    if (!rows) return false;
     removeOurRows(rows);
     wrapExistingShortcuts(rows);
 
@@ -512,9 +521,26 @@
       installSettingsTreeGuard();
       installSettingsListRepair();
       syncPins();
+
+      // ShiggyCord starts Vendetta plugins in staggered batches. Retry only
+      // during startup so a late-created settings section cannot strand pins
+      // until the next ReShiggy.
+      for (const delay of [250, 750, 1500, 3000, 6000, 10000]) {
+        startupRetryTimers.push(setTimeout(() => {
+          try {
+            if (syncPins()) {
+              findSettingsTreeManager()?.clearCaches?.();
+            }
+          } catch {}
+        }, delay));
+      }
+
       try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },
     onUnload() {
+      while (startupRetryTimers.length) {
+        try { clearTimeout(startupRetryTimers.pop()); } catch {}
+      }
       restoreExistingShortcuts();
       removeOurRows(shiggyRows());
       try { settingsTreeGuardUnpatch?.(); } catch {}

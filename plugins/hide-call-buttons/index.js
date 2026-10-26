@@ -8,7 +8,7 @@
   const { after } = V.patcher;
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
-  const VERSION = "1.3.6-shiggy";
+  const VERSION = "1.3.7-shiggy";
   const RUNTIME_KEY = "__itsTripleSixHideCallButtonsRuntime";
 
   const PATHS = {
@@ -34,6 +34,7 @@
 
   const runtime = {
     patches: [],
+    jsxMemoTargets: new WeakSet(),
     armed: {
       profile: false,
       dmHeader: false,
@@ -260,9 +261,96 @@
     }
   }
 
+  function moduleDefault(path) {
+    try {
+      const found = B?.metro?.findByFilePath?.(path, true);
+      return found ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  function ensureMemoPatch(component, path, label, apply) {
+    if (
+      !component
+      || typeof component !== "object"
+      || typeof component.type !== "function"
+      || runtime.jsxMemoTargets.has(component)
+    ) return;
+
+    const exact = moduleDefault(path);
+    if (exact !== component) return;
+
+    try {
+      const unpatch = after("type", component, (_args, result) => {
+        try { return apply(result); }
+        catch (error) {
+          try { V.logger?.error?.(`[Hide Call Buttons] JSX ${label}`, error); } catch {}
+          return result;
+        }
+      });
+      runtime.jsxMemoTargets.add(component);
+      runtime.patches.push(unpatch);
+    } catch {}
+  }
+
+  function installJsxSafetyNet() {
+    try {
+      const jsxRuntime = V.metro?.findByPropsLazy?.("jsx", "jsxs");
+      if (!jsxRuntime) return false;
+
+      const callback = (args, result) => {
+        const Component = args?.[0];
+        if (!Component) return result;
+
+        if (typeof Component === "function") {
+          const name = String(Component.displayName ?? Component.name ?? "");
+
+          if (name === "UserProfileContactButtons" && storage.profileHideCallButton) {
+            try {
+              return React.cloneElement(result, { disableCalls: true });
+            } catch {
+              return result;
+            }
+          }
+
+          if (name === "VideoButton" && storage.hideVCVideoButton) {
+            const exact = moduleDefault(PATHS.voiceVideo);
+            if (exact === Component) return null;
+          }
+
+          return result;
+        }
+
+        const innerName = String(
+          Component?.type?.displayName
+          ?? Component?.type?.name
+          ?? "",
+        );
+
+        if (innerName === "PrivateChannelButtons") {
+          ensureMemoPatch(Component, PATHS.dmHeader, "dmHeader", pruneDM);
+        } else if (innerName === "UserRow") {
+          ensureMemoPatch(Component, PATHS.friends, "friends", pruneFriends);
+        }
+
+        return result;
+      };
+
+      runtime.patches.push(after("jsx", jsxRuntime, callback));
+      runtime.patches.push(after("jsxs", jsxRuntime, callback));
+      return true;
+    } catch (error) {
+      try { V.logger?.error?.("[Hide Call Buttons] JSX safety net", error); } catch {}
+      return false;
+    }
+  }
+
   function install() {
     runtime.cleanup();
+    runtime.jsxMemoTargets = new WeakSet();
 
+    // Primary source-path patches stay unchanged from v1.3.6.
     armLazy(PATHS.profile, false, "default", "profile", pruneProfile);
     armLazy(PATHS.dmHeader, true, "type", "dmHeader", pruneDM);
     armLazy(PATHS.friends, true, "type", "friends", pruneFriends);
@@ -273,6 +361,11 @@
       "voiceVideo",
       result => storage.hideVCVideoButton ? null : result,
     );
+
+    // Safety net for Discord modules/components captured before Vendetta's
+    // staggered plugin startup finishes. It does not change the pruning rules;
+    // it only makes sure those same rules reach the component actually rendered.
+    installJsxSafetyNet();
   }
 
   function SettingRow({ title, description, storageKey, forceUpdate }) {

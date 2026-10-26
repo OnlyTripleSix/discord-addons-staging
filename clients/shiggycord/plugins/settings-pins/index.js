@@ -8,9 +8,8 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.1.0-shiggy";
+  const VERSION = "1.0.11-shiggy";
   const SECTION = "ShiggyCord";
-  const PIN_SECTION = "Pinned Plugins";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
   const CORE_ROW_KEYS = new Set([
@@ -23,7 +22,6 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
-  const startupRepairTimers = [];
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -224,7 +222,6 @@
       icon: iconFor(plugin),
       onPress: () => openPinnedPlugin(id),
       usePredicate: () => {
-        if (allPlugins()[SELF_ID]?.enabled === false) return false;
         if (!isPinned(id)) return false;
         const live = allPlugins()[id];
         if (!live?.enabled) return false;
@@ -232,72 +229,6 @@
         catch { return false; }
       },
     };
-  }
-
-  function findSettingsTreeManager() {
-    try {
-      const direct = V.metro?.findByProps?.("getAncestors", "isBlocked", "clearCaches")
-        ?? V.metro?.findByProps?.("getAncestors", "isBlocked");
-      if (direct?.isBlocked) return direct;
-      if (direct?.default?.isBlocked) return direct.default;
-    } catch {}
-
-    try {
-      const module = V.metro?.find?.(candidate => {
-        const value = candidate?.default ?? candidate;
-        return typeof value?.getAncestors === "function"
-          && typeof value?.isBlocked === "function";
-      });
-      const value = module?.default ?? module;
-      return typeof value?.isBlocked === "function" ? value : null;
-    } catch {
-      return null;
-    }
-  }
-
-  function pinSectionRows() {
-    return Object.values(allPlugins())
-      .filter(plugin => plugin?.id)
-      .map(plugin => makePinRow(String(plugin.id)))
-      .filter(Boolean);
-  }
-
-  function ensurePinSection() {
-    const api = B?.ui?.settings;
-    const registry = api?.registeredSections;
-    if (!registry || typeof registry !== "object") return false;
-
-    const rows = pinSectionRows();
-    const existing = registry[PIN_SECTION];
-    const desiredKeys = rows.map(row => String(row?.key ?? ""));
-    const existingKeys = Array.isArray(existing)
-      ? existing.map(row => String(row?.key ?? ""))
-      : [];
-
-    const same = desiredKeys.length === existingKeys.length
-      && desiredKeys.every((key, index) => key === existingKeys[index]);
-
-    if (!same) {
-      if (typeof api.registerSection === "function") {
-        try { api.registerSection({ name: PIN_SECTION, items: rows }); }
-        catch { registry[PIN_SECTION] = rows; }
-      } else {
-        registry[PIN_SECTION] = rows;
-      }
-    }
-
-    return Array.isArray(registry[PIN_SECTION]);
-  }
-
-  function registeredPinKeys() {
-    try {
-      const rows = B?.ui?.settings?.registeredSections?.[PIN_SECTION];
-      return Array.isArray(rows)
-        ? rows.map(row => String(row?.key ?? "")).filter(Boolean)
-        : [];
-    } catch {
-      return [];
-    }
   }
 
   function findSettingsTreeManager() {
@@ -331,11 +262,18 @@
       const field = String(args?.[0] ?? "");
       if (!field.startsWith(KEY_PREFIX)) return original(...args);
 
-      ensurePinSection();
-      if (!registeredPinKeys().includes(field)) return true;
+      const stillRegistered = (shiggyRows() ?? [])
+        .some(row => String(row?.key ?? "") === field);
+      if (!stillRegistered) return true;
 
-      try { return original(...args); }
-      catch { return true; }
+      try {
+        return original(...args);
+      } catch {
+        // Discord's current SettingTreeManager assumes every setting key still
+        // has a renderer config entry. A stale Settings Pins key must be hidden,
+        // not allowed to crash the entire Settings overview.
+        return true;
+      }
     });
 
     return true;
@@ -343,61 +281,56 @@
 
   function repairSettingsNode(node) {
     if (!node || !Array.isArray(node.sections)) return node;
-    if (!ensurePinSection()) return node;
 
-    const desiredKeys = registeredPinKeys();
-    if (!desiredKeys.length) return node;
+    const rows = shiggyRows();
+    if (!Array.isArray(rows)) return node;
 
-    // Migration cleanup only: v1.0.x injected pin rows into another section.
-    for (const candidate of node.sections) {
-      if (!Array.isArray(candidate?.settings)) continue;
-      if (candidate.label === PIN_SECTION || candidate.title === PIN_SECTION) continue;
-      const kept = candidate.settings.filter(
-        key => !String(key ?? "").startsWith(KEY_PREFIX),
-      );
-      if (kept.length !== candidate.settings.length) {
-        candidate.settings.splice(0, candidate.settings.length, ...kept);
-      }
-    }
+    const desiredKeys = rows
+      .map(row => String(row?.key ?? ""))
+      .filter(Boolean);
 
-    let section = node.sections.find(candidate =>
-      candidate
-      && Array.isArray(candidate.settings)
-      && (candidate.label === PIN_SECTION || candidate.title === PIN_SECTION)
-    );
+    if (!desiredKeys.some(key => key.startsWith(KEY_PREFIX))) return node;
+
+    let section = node.sections.find(candidate => {
+      if (!candidate || !Array.isArray(candidate.settings)) return false;
+      if (candidate.label === SECTION || candidate.title === SECTION) return true;
+      return candidate.settings.includes("SHIGGYCORD")
+        || candidate.settings.includes("BUNNY_PLUGINS");
+    });
 
     if (!section) {
-      const shiggyIndex = node.sections.findIndex(candidate =>
-        candidate
-        && Array.isArray(candidate.settings)
-        && (candidate.label === SECTION
-          || candidate.title === SECTION
-          || candidate.settings.includes("SHIGGYCORD"))
-      );
       const accountIndex = node.sections.findIndex(candidate =>
         Array.isArray(candidate?.settings) && candidate.settings.includes("ACCOUNT")
       );
-
       section = {
-        label: PIN_SECTION,
-        title: PIN_SECTION,
+        label: SECTION,
+        title: SECTION,
         settings: desiredKeys.slice(),
       };
-
-      const insertAt = shiggyIndex >= 0
-        ? shiggyIndex + 1
-        : accountIndex >= 0
-          ? accountIndex + 1
-          : 0;
-      node.sections.splice(insertAt, 0, section);
+      node.sections.splice(accountIndex >= 0 ? accountIndex + 1 : 0, 0, section);
       return node;
     }
 
-    const current = section.settings;
-    const unchanged = current.length === desiredKeys.length
-      && current.every((value, index) => String(value ?? "") === desiredKeys[index]);
+    const current = Array.isArray(section.settings) ? section.settings : [];
+    const extras = current.filter(key => {
+      const value = String(key ?? "");
+      return value
+        && !value.startsWith(KEY_PREFIX)
+        && !desiredKeys.includes(value);
+    });
 
-    if (!unchanged) current.splice(0, current.length, ...desiredKeys);
+    const next = [...desiredKeys, ...extras];
+    const unchanged = current.length === next.length
+      && current.every((value, index) => String(value ?? "") === next[index]);
+
+    if (!unchanged) {
+      if (Array.isArray(section.settings)) {
+        section.settings.splice(0, section.settings.length, ...next);
+      } else {
+        section.settings = next;
+      }
+    }
+
     return node;
   }
 
@@ -423,11 +356,13 @@
           return result;
         }),
       );
+
       settingsListRepairUnpatches.push(
         V.patcher.before("toSettingListItems", rendererUtils, args => {
           repairSettingsNode(args?.[0]);
         }),
       );
+
       return true;
     } catch {
       return false;
@@ -436,14 +371,28 @@
 
   function syncPins() {
     ensurePinState();
-    removeOurRows(shiggyRows());
-    wrapExistingShortcuts();
+    const rows = shiggyRows();
+    if (!rows) return false;
 
-    const registered = ensurePinSection();
     installSettingsTreeGuard();
     installSettingsListRepair();
-    try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
-    return registered;
+    removeOurRows(rows);
+    wrapExistingShortcuts(rows);
+
+    // Keep every installed plugin's pin row registered for the lifetime of this
+    // plugin and let usePredicate control visibility. This prevents Discord's
+    // memoized settings/search tree from holding keys that we just removed.
+    const pinRows = Object.values(allPlugins())
+      .filter(plugin => plugin?.id)
+      .map(plugin => makePinRow(String(plugin.id)))
+      .filter(Boolean);
+
+    if (!pinRows.length) return true;
+
+    const pluginsIndex = rows.findIndex(row => row?.key === "BUNNY_PLUGINS");
+    const insertAt = pluginsIndex >= 0 ? pluginsIndex + 1 : rows.length;
+    rows.splice(insertAt, 0, ...pinRows);
+    return true;
   }
 
   function Settings() {
@@ -469,7 +418,7 @@
       }, "Settings Pins"),
       React.createElement(RN.Text, {
         style: { color: C.muted, fontSize: 13, lineHeight: 18, marginBottom: 14 },
-      }, "Choose which plugin settings appear in the Pinned Plugins section. After changing pins, ReShiggy is still the safest way to force an immediate rebuild."),
+      }, "Choose which plugin settings appear directly in ShiggyCord. After turning a pin on or off, use ReShiggy for the change to take effect."),
       ...plugins.map(plugin => {
         const id = String(plugin.id);
         const pinned = isPinned(id);
@@ -560,25 +509,14 @@
   return {
     onLoad() {
       ensurePinState();
+      installSettingsTreeGuard();
+      installSettingsListRepair();
       syncPins();
-
-      // ShiggyCord starts Vendetta plugins in staggered batches. Re-assert the
-      // registration while the remaining plugin settings pages finish loading.
-      for (const delay of [750, 2500, 6000]) {
-        startupRepairTimers.push(setTimeout(() => {
-          try { syncPins(); } catch {}
-        }, delay));
-      }
+      try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },
     onUnload() {
       restoreExistingShortcuts();
       removeOurRows(shiggyRows());
-      while (startupRepairTimers.length) {
-        try { clearTimeout(startupRepairTimers.pop()); } catch {}
-      }
-      // Keep the registered section object until a full reload. Once this
-      // plugin is disabled its predicates hide the rows, which avoids leaving
-      // cached Discord settings nodes pointing at missing renderer entries.
       try { settingsTreeGuardUnpatch?.(); } catch {}
       settingsTreeGuardUnpatch = null;
       while (settingsListRepairUnpatches.length) {

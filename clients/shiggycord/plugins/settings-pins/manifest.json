@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord with self-healing renderer integration, blocklist protection, and forced settings refresh after staggered plugin startup.",
+  "description": "Pin plugin settings into ShiggyCord with self-healing renderer integration, blocklist protection, forced settings refresh, and native row icons.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "2c0292300a7ca86be519494b7096d01235331c7b",
+  "hash": "2870bd1ef5e568bf68c9fd9ed7e020695bb3e84c",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

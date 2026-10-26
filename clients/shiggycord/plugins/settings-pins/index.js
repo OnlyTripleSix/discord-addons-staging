@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.3.2-shiggy";
+  const VERSION = "1.3.3-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -240,10 +240,28 @@
       ?? "Plugin"
     );
 
+    const icon = iconFor(plugin);
+    let IconComponent;
+
+    if (icon != null) {
+      try {
+        const TableRow =
+          B?.metro?.common?.components?.TableRow
+          ?? V.metro?.findByProps?.("TableRow")?.TableRow;
+
+        if (TableRow?.Icon) {
+          IconComponent = () =>
+            React.createElement(TableRow.Icon, { source: icon });
+        }
+      } catch {}
+    }
+
     return {
       type: "pressable",
       title,
       useTitle: title,
+      icon,
+      IconComponent,
       usePredicate: () => isPinned(id),
       onPress: () => openPinnedPlugin(id),
       withArrow: true,

@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.0.14-shiggy";
+  const VERSION = "1.1.1-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -22,8 +22,6 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
-  const startupRetryTimers = [];
-  const BLOCKLIST_PATH = "modules/settings/native/renderer/stores/SettingBlocklistStore.tsx";
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -223,80 +221,8 @@
       title: () => String(allPlugins()[id]?.manifest?.name ?? plugin.manifest?.name ?? "Plugin"),
       icon: iconFor(plugin),
       onPress: () => openPinnedPlugin(id),
-      usePredicate: () => {
-        if (!isPinned(id)) return false;
-        const live = allPlugins()[id];
-        return live?.enabled === true;
-      },
+      usePredicate: () => isPinned(id),
     };
-  }
-
-  function clearPinBlocklist() {
-    try {
-      const store = B?.metro?.findByFilePathLazy?.(BLOCKLIST_PATH, true);
-      if (!store?.getField || !store?.setState) return false;
-
-      const current = store.getField("blocklist");
-      if (!(current instanceof Set)) return false;
-
-      const next = new Set(current);
-      let changed = false;
-      for (const key of current) {
-        if (String(key ?? "").startsWith(KEY_PREFIX)) {
-          next.delete(key);
-          changed = true;
-        }
-      }
-
-      if (changed) store.setState({ blocklist: next });
-      return changed;
-    } catch {
-      return false;
-    }
-  }
-
-  function parsedVersion(plugin) {
-    try {
-      const match = String(plugin?.js ?? "").match(
-        /VERSION\s*=\s*["'](\d+)\.(\d+)\.(\d+)-shiggy["']/
-      );
-      if (!match) return [0, 0, 0];
-      return match.slice(1, 4).map(Number);
-    } catch {
-      return [0, 0, 0];
-    }
-  }
-
-  function compareVersion(a, b) {
-    for (let i = 0; i < 3; i += 1) {
-      if (a[i] !== b[i]) return a[i] - b[i];
-    }
-    return 0;
-  }
-
-  function disableOlderDuplicates() {
-    const all = allPlugins();
-    const current = all[SELF_ID];
-    if (!current) return 0;
-
-    const currentVersion = parsedVersion(current);
-    let stopped = 0;
-
-    for (const plugin of Object.values(all)) {
-      if (!plugin?.id || String(plugin.id) === SELF_ID) continue;
-      if (String(plugin?.manifest?.name ?? "") !== "Settings Pins") continue;
-      if (plugin.enabled !== true) continue;
-
-      const otherVersion = parsedVersion(plugin);
-      if (compareVersion(otherVersion, currentVersion) > 0) continue;
-
-      try {
-        V.plugins.stopPlugin(String(plugin.id), true);
-        stopped += 1;
-      } catch {}
-    }
-
-    return stopped;
   }
 
   function findSettingsTreeManager() {
@@ -347,59 +273,64 @@
     return true;
   }
 
-  function repairSettingsNode(node) {
-    if (!node || !Array.isArray(node.sections)) return node;
-
-    const rows = shiggyRows();
-    if (!Array.isArray(rows)) return node;
-
-    const desiredKeys = rows
-      .map(row => String(row?.key ?? ""))
-      .filter(Boolean);
-
-    if (!desiredKeys.some(key => key.startsWith(KEY_PREFIX))) return node;
-
-    let section = node.sections.find(candidate => {
-      if (!candidate || !Array.isArray(candidate.settings)) return false;
-      if (candidate.label === SECTION || candidate.title === SECTION) return true;
-      return candidate.settings.includes("SHIGGYCORD")
-        || candidate.settings.includes("BUNNY_PLUGINS");
-    });
-
-    if (!section) {
-      const accountIndex = node.sections.findIndex(candidate =>
-        Array.isArray(candidate?.settings) && candidate.settings.includes("ACCOUNT")
-      );
-      section = {
-        label: SECTION,
-        title: SECTION,
-        settings: desiredKeys.slice(),
-      };
-      node.sections.splice(accountIndex >= 0 ? accountIndex + 1 : 0, 0, section);
-      return node;
+  function rendererConfigFor(key) {
+    try {
+      const constants = V.metro?.findByProps?.("SETTING_RENDERER_CONFIG");
+      return constants?.SETTING_RENDERER_CONFIG?.[key] ?? null;
+    } catch {
+      return null;
     }
+  }
 
-    const current = Array.isArray(section.settings) ? section.settings : [];
-    const extras = current.filter(key => {
-      const value = String(key ?? "");
-      return value
-        && !value.startsWith(KEY_PREFIX)
-        && !desiredKeys.includes(value);
-    });
+  function injectPinRows(items) {
+    if (!Array.isArray(items)) return items;
 
-    const next = [...desiredKeys, ...extras];
-    const unchanged = current.length === next.length
-      && current.every((value, index) => String(value ?? "") === next[index]);
+    // Ensure our row definitions exist in ShiggyCord's dynamic renderer config.
+    // This is safe here: syncPins only mutates registeredSections, not this list.
+    try { syncPins(); } catch {}
 
-    if (!unchanged) {
-      if (Array.isArray(section.settings)) {
-        section.settings.splice(0, section.settings.length, ...next);
-      } else {
-        section.settings = next;
+    // Never trust Discord's cached section membership for our rows. Remove any
+    // copy produced by the stale node, then inject exactly the pins selected in
+    // this plugin's storage into the final list Discord is about to render.
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      if (String(items[i]?.setting ?? "").startsWith(KEY_PREFIX)) {
+        items.splice(i, 1);
       }
     }
 
-    return node;
+    const ids = currentPins().filter(id => allPlugins()[id]);
+    if (!ids.length) return items;
+
+    let anchor = items.findIndex(item => item?.setting === "BUNNY_PLUGINS");
+    if (anchor < 0) anchor = items.findIndex(item => item?.setting === "SHIGGYCORD");
+    if (anchor < 0) return items;
+
+    const rowType = items[anchor]?.type;
+    if (rowType == null) return items;
+
+    const nextWasRow = items[anchor + 1]?.type === rowType;
+    const rows = [];
+
+    for (const id of ids) {
+      const key = pinRowKey(id);
+      const settingData = rendererConfigFor(key);
+      if (!settingData) continue;
+
+      rows.push({
+        type: rowType,
+        setting: key,
+        settingData,
+        start: false,
+        end: false,
+      });
+    }
+
+    if (!rows.length) return items;
+
+    if (items[anchor]?.end === true) items[anchor].end = false;
+    rows[rows.length - 1].end = !nextWasRow;
+    items.splice(anchor + 1, 0, ...rows);
+    return items;
   }
 
   function installSettingsListRepair() {
@@ -409,25 +340,15 @@
     if (typeof findLazy !== "function") return false;
 
     try {
-      const builders = findLazy(
-        "modules/settings/native/renderer/SettingBuilders.tsx",
-        false,
-      );
       const rendererUtils = findLazy(
         "modules/settings/native/renderer/SettingRendererUtils.tsx",
         false,
       );
 
       settingsListRepairUnpatches.push(
-        V.patcher.after("createList", builders, (_args, result) => {
-          repairSettingsNode(result);
-          return result;
-        }),
-      );
-
-      settingsListRepairUnpatches.push(
-        V.patcher.before("toSettingListItems", rendererUtils, args => {
-          repairSettingsNode(args?.[0]);
+        V.patcher.after("toSettingListItems", rendererUtils, (_args, result) => {
+          try { return injectPinRows(result); }
+          catch { return result; }
         }),
       );
 
@@ -439,13 +360,11 @@
 
   function syncPins() {
     ensurePinState();
+    const rows = shiggyRows();
+    if (!rows) return false;
 
     installSettingsTreeGuard();
     installSettingsListRepair();
-    clearPinBlocklist();
-
-    const rows = shiggyRows();
-    if (!rows) return false;
     removeOurRows(rows);
     wrapExistingShortcuts(rows);
 
@@ -462,7 +381,6 @@
     const pluginsIndex = rows.findIndex(row => row?.key === "BUNNY_PLUGINS");
     const insertAt = pluginsIndex >= 0 ? pluginsIndex + 1 : rows.length;
     rows.splice(insertAt, 0, ...pinRows);
-    clearPinBlocklist();
     return true;
   }
 
@@ -580,31 +498,12 @@
   return {
     onLoad() {
       ensurePinState();
-      disableOlderDuplicates();
+      installSettingsTreeGuard();
+      installSettingsListRepair();
       syncPins();
-
-      for (const delay of [500, 1500, 3000, 6000, 10000, 15000]) {
-        startupRetryTimers.push(setTimeout(() => {
-          try {
-            const stopped = disableOlderDuplicates();
-            const synced = syncPins();
-            if (stopped || synced) {
-              clearPinBlocklist();
-              findSettingsTreeManager()?.clearCaches?.();
-            }
-          } catch {}
-        }, delay));
-      }
-
-      try {
-        clearPinBlocklist();
-        findSettingsTreeManager()?.clearCaches?.();
-      } catch {}
+      try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },
     onUnload() {
-      while (startupRetryTimers.length) {
-        try { clearTimeout(startupRetryTimers.pop()); } catch {}
-      }
       restoreExistingShortcuts();
       removeOurRows(shiggyRows());
       try { settingsTreeGuardUnpatch?.(); } catch {}

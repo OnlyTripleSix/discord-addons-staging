@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Clears stale pin blocklist entries and disables older duplicate Settings Pins installs.",
+  "description": "Pin plugin settings into ShiggyCord by injecting selected rows into Discord's final rendered settings list, bypassing stale cached section membership.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "faa44c4fe2efb06e1f28e326df1e8d399c235e6b",
+  "hash": "2fc6effcd9b6f14a0b6a29acd085478703bdf8bf",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

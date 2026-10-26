@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord by refreshing the live createList config before Discord builds Settings.",
+  "description": "Pin plugin settings into ShiggyCord with renderer-level repair for cached settings lists.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "710117d999554cf88dc7ed5527cf7867af983906",
+  "hash": "d52992d962496dfcff5c2c92ad37576d8d3331f3",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

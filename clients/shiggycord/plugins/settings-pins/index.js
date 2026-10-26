@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.1.2-shiggy";
+  const VERSION = "1.2.0-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -22,6 +22,7 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
+  const diagnostics = { settingsListPatches: 0, settingsListHits: 0 };
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -256,16 +257,15 @@
       const field = String(args?.[0] ?? "");
       if (!field.startsWith(KEY_PREFIX)) return original(...args);
 
-      const stillRegistered = (shiggyRows() ?? [])
-        .some(row => String(row?.key ?? "") === field);
-      if (!stillRegistered) return true;
+      const row = (shiggyRows() ?? [])
+        .find(candidate => String(candidate?.key ?? "") === field);
+      if (!row) return true;
 
       try {
-        return original(...args);
+        return typeof row.usePredicate === "function"
+          ? !row.usePredicate()
+          : false;
       } catch {
-        // Discord's current SettingTreeManager assumes every setting key still
-        // has a renderer config entry. A stale Settings Pins key must be hidden,
-        // not allowed to crash the entire Settings overview.
         return true;
       }
     });
@@ -273,11 +273,10 @@
     return true;
   }
 
-  function refreshShiggySectionConfig(config) {
-    try { syncPins(); } catch {}
+  function refreshRenderedNode(node) {
+    if (!node || !Array.isArray(node.sections)) return false;
 
-    const sections = config?.sections;
-    if (!Array.isArray(sections)) return false;
+    try { syncPins(); } catch {}
 
     const rows = shiggyRows();
     if (!Array.isArray(rows)) return false;
@@ -286,7 +285,7 @@
       .map(row => String(row?.key ?? ""))
       .filter(Boolean);
 
-    const section = sections.find(candidate =>
+    const section = node.sections.find(candidate =>
       candidate
       && Array.isArray(candidate.settings)
       && (
@@ -303,37 +302,55 @@
     const same = current.length === keys.length
       && current.every((value, index) => String(value ?? "") === keys[index]);
 
-    if (!same) {
-      current.splice(0, current.length, ...keys);
-    }
+    if (!same) current.splice(0, current.length, ...keys);
+    return true;
+  }
 
+  function patchMemoType(component) {
+    if (!component || typeof component.type !== "function") return false;
+
+    const unpatch = V.patcher.before("type", component, args => {
+      diagnostics.settingsListHits += 1;
+      try { refreshRenderedNode(args?.[0]?.node); } catch {}
+    });
+
+    settingsListRepairUnpatches.push(unpatch);
+    diagnostics.settingsListPatches += 1;
     return true;
   }
 
   function installSettingsListRepair() {
     if (settingsListRepairUnpatches.length) return true;
 
+    const path = "modules/settings/native/renderer/SettingListRenderer.tsx";
+
     try {
-      const createListModule =
-        B?.metro?.findByPropsLazy?.("createList")
-        ?? V.metro?.findByProps?.("createList");
+      const module = B?.metro?.findByFilePath?.(path, false);
+      if (module) {
+        patchMemoType(module.SettingsList);
+        patchMemoType(module.SearchableSettingsList);
+      }
+      if (diagnostics.settingsListPatches > 0) return true;
+    } catch {}
 
-      if (!createListModule) return false;
+    try {
+      const lazy = B?.metro?.findByFilePathLazy?.(path, false);
+      const delay = lazy?.[Symbol.for("bunny.api.patcher.delay")];
+      if (typeof delay !== "function") return false;
 
-      // This is the same layer ShiggyCord's own patchTabsUI uses. The important
-      // part is mutating args[0].sections, not the returned node.
-      settingsListRepairUnpatches.push(
-        V.patcher.before("createList", createListModule, args => {
-          try { refreshShiggySectionConfig(args?.[0]); } catch {}
-        }),
-      );
+      let cancelled = false;
+      const dispose = delay(module => {
+        if (cancelled || !module) return;
+        try {
+          patchMemoType(module.SettingsList);
+          patchMemoType(module.SearchableSettingsList);
+        } catch {}
+      });
 
-      settingsListRepairUnpatches.push(
-        V.patcher.after("createList", createListModule, (args, result) => {
-          try { refreshShiggySectionConfig(args?.[0]); } catch {}
-          return result;
-        }),
-      );
+      settingsListRepairUnpatches.push(() => {
+        cancelled = true;
+        try { dispose?.(); } catch {}
+      });
 
       return true;
     } catch {
@@ -427,10 +444,6 @@
           value: pinned,
           onValueChange(value) {
             setPinned(id, value);
-            try {
-              syncPins();
-              findSettingsTreeManager()?.clearCaches?.();
-            } catch {}
             forceUpdate();
           },
         }));
@@ -478,7 +491,7 @@
       ] : []),
       React.createElement(RN.Text, {
         style: { color: C.muted, fontSize: 12, marginTop: 14 },
-      }, `v${VERSION}`),
+      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • renderer:${diagnostics.settingsListPatches} • hits:${diagnostics.settingsListHits}`),
     );
   }
 

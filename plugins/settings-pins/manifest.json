@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord with a direct renderer bridge, live settings repair, and persistent pin blocklist protection.",
+  "description": "Pin plugin settings into ShiggyCord with self-healing renderer integration, blocklist protection, and forced settings refresh after staggered plugin startup.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "42848bd137a25b253d772df0d2a199c766b9894b",
+  "hash": "2c0292300a7ca86be519494b7096d01235331c7b",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

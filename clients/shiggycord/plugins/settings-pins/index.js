@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.3.1-shiggy";
+  const VERSION = "1.3.2-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -22,9 +22,11 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   let rendererConfigBridgeUnpatch = null;
+  let rendererConfigBridgeGetter = null;
   let blocklistGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
-  const diagnostics = { utilsPatches: 0, utilsHits: 0, validPins: 0, repairs: 0, bridge: 0, blocklist: 0, strips: 0 };
+  const startupRepairTimers = [];
+  const diagnostics = { utilsPatches: 0, utilsHits: 0, validPins: 0, repairs: 0, bridge: 0, blocklist: 0, strips: 0, pokes: 0, rewraps: 0 };
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -266,8 +268,6 @@
   }
 
   function installRendererConfigBridge() {
-    if (rendererConfigBridgeUnpatch) return true;
-
     const module = findRendererConfigModule();
     if (!module) return false;
 
@@ -277,39 +277,62 @@
     );
     if (!descriptor || descriptor.configurable === false) return false;
 
+    // Another plugin can replace this getter after Settings Pins starts.
+    // If our getter is still installed there is nothing to do.
+    if (descriptor.get && descriptor.get === rendererConfigBridgeGetter) {
+      diagnostics.bridge = 1;
+      return true;
+    }
+
+    const previousDescriptor = descriptor;
     const readBase = descriptor.get
       ? () => descriptor.get.call(module)
       : () => descriptor.value;
-
     const writeBase = descriptor.set
       ? value => descriptor.set.call(module, value)
       : null;
+
+    const bridgeGetter = function settingsPinsRendererConfig() {
+      const base = readBase() ?? {};
+      const merged = { ...base };
+
+      for (const plugin of Object.values(allPlugins())) {
+        if (!plugin?.id) continue;
+        const id = String(plugin.id);
+        const data = pinRendererData(id);
+        if (data) merged[pinRowKey(id)] = data;
+      }
+
+      return merged;
+    };
 
     try {
       Object.defineProperty(module, "SETTING_RENDERER_CONFIG", {
         enumerable: descriptor.enumerable ?? true,
         configurable: true,
-        get() {
-          const base = readBase() ?? {};
-          const merged = { ...base };
-
-          for (const plugin of Object.values(allPlugins())) {
-            if (!plugin?.id) continue;
-            const id = String(plugin.id);
-            const data = pinRendererData(id);
-            if (data) merged[pinRowKey(id)] = data;
-          }
-
-          return merged;
-        },
+        get: bridgeGetter,
         ...(writeBase ? { set: writeBase } : {}),
       });
 
+      if (rendererConfigBridgeGetter) diagnostics.rewraps += 1;
+      rendererConfigBridgeGetter = bridgeGetter;
+
       rendererConfigBridgeUnpatch = () => {
         try {
-          Object.defineProperty(module, "SETTING_RENDERER_CONFIG", descriptor);
+          const current = Object.getOwnPropertyDescriptor(
+            module,
+            "SETTING_RENDERER_CONFIG",
+          );
+          if (current?.get === bridgeGetter) {
+            Object.defineProperty(
+              module,
+              "SETTING_RENDERER_CONFIG",
+              previousDescriptor,
+            );
+          }
         } catch {}
       };
+
       diagnostics.bridge = 1;
       return true;
     } catch {
@@ -380,6 +403,25 @@
     } catch {}
 
     return false;
+  }
+
+  function forceSettingsRefresh() {
+    const store = findBlocklistStore();
+    if (!store) return false;
+
+    try {
+      const current = store.getField("blocklist");
+      if (!(current instanceof Set)) return false;
+
+      // SettingListRenderer memoizes toSettingListItems by node + blocklist
+      // identity. A fresh Set forces Discord to recompute the list after this
+      // late-starting Vendetta plugin installs its hooks.
+      store.setState({ blocklist: new Set(sanitizeBlocklist(current)) });
+      diagnostics.pokes += 1;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   function installBlocklistGuard() {
@@ -559,7 +601,10 @@
         module,
         args => {
           diagnostics.utilsHits += 1;
-          try { repairSettingsNode(args?.[0]); } catch {}
+          try {
+            installRendererConfigBridge();
+            repairSettingsNode(args?.[0]);
+          } catch {}
         },
       );
       settingsListRepairUnpatches.push(unpatch);
@@ -699,6 +744,10 @@
           value: pinned,
           onValueChange(value) {
             setPinned(id, value);
+            try {
+              syncPins();
+              forceSettingsRefresh();
+            } catch {}
             forceUpdate();
           },
         }));
@@ -746,7 +795,7 @@
       ] : []),
       React.createElement(RN.Text, {
         style: { color: C.muted, fontSize: 12, marginTop: 14 },
-      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • valid:${diagnostics.validPins} • bridge:${diagnostics.bridge} • block:${diagnostics.blocklist} • strips:${diagnostics.strips} • utils:${diagnostics.utilsPatches} • hits:${diagnostics.utilsHits} • repairs:${diagnostics.repairs}`),
+      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • valid:${diagnostics.validPins} • bridge:${diagnostics.bridge} • rewrap:${diagnostics.rewraps} • block:${diagnostics.blocklist} • strips:${diagnostics.strips} • utils:${diagnostics.utilsPatches} • hits:${diagnostics.utilsHits} • repairs:${diagnostics.repairs} • pokes:${diagnostics.pokes}`),
     );
   }
 
@@ -759,9 +808,29 @@
       installSettingsTreeGuard();
       installSettingsListRepair();
       syncPins();
+      forceSettingsRefresh();
+
+      // Vendetta plugins start in staggered batches. Reassert after later
+      // settings-pinning plugins (notably Commands) have had a chance to wrap
+      // SETTING_RENDERER_CONFIG, then force Discord's memoized list to rebuild.
+      for (const delay of [750, 2000, 5000, 10000]) {
+        startupRepairTimers.push(setTimeout(() => {
+          try {
+            installRendererConfigBridge();
+            syncPins();
+            cleanCurrentBlocklist();
+            forceSettingsRefresh();
+            findSettingsTreeManager()?.clearCaches?.();
+          } catch {}
+        }, delay));
+      }
+
       try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },
     onUnload() {
+      while (startupRepairTimers.length) {
+        try { clearTimeout(startupRepairTimers.pop()); } catch {}
+      }
       restoreExistingShortcuts();
       removeOurRows(shiggyRows());
       try { settingsTreeGuardUnpatch?.(); } catch {}
@@ -774,6 +843,7 @@
       diagnostics.blocklist = 0;
       try { rendererConfigBridgeUnpatch?.(); } catch {}
       rendererConfigBridgeUnpatch = null;
+      rendererConfigBridgeGetter = null;
       diagnostics.bridge = 0;
       try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
     },

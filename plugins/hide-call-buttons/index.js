@@ -8,7 +8,7 @@
   const { after } = V.patcher;
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
-  const VERSION = "1.3.6-shiggy";
+  const VERSION = "1.4.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixHideCallButtonsRuntime";
 
   const PATHS = {
@@ -40,11 +40,16 @@
       friends: false,
       voiceVideo: false,
     },
+    captured: {
+      profile: false,
+      voiceVideo: false,
+    },
     cleanup() {
       for (const unpatch of runtime.patches.splice(0)) {
         try { unpatch?.(); } catch {}
       }
       for (const key of Object.keys(runtime.armed)) runtime.armed[key] = false;
+      for (const key of Object.keys(runtime.captured)) runtime.captured[key] = false;
     },
   };
   globalThis[RUNTIME_KEY] = runtime;
@@ -169,8 +174,108 @@
     return fn(base);
   }
 
+  function typeName(type) {
+    if (typeof type === "function") {
+      return String(type.displayName ?? type.name ?? "");
+    }
+    if (type && typeof type === "object") {
+      return String(
+        type.displayName
+        ?? type.type?.displayName
+        ?? type.type?.name
+        ?? type.render?.displayName
+        ?? type.render?.name
+        ?? "",
+      );
+    }
+    return "";
+  }
+
+  function subtreeHints(node, depth = 0, out = []) {
+    if (depth > 7) return out;
+
+    if (Array.isArray(node)) {
+      for (const child of node) subtreeHints(child, depth + 1, out);
+      return out;
+    }
+
+    if (!isElement(node)) return out;
+
+    const name = typeName(node.type);
+    if (name) out.push(name);
+    subtreeHints(childrenOf(node), depth + 1, out);
+    return out;
+  }
+
+  function controlKind(element) {
+    const names = subtreeHints(element).join(" ");
+    if (/Video|Camera/i.test(names)) return "video";
+    if (/Phone(Call|HangUp)|VoiceNormal|VoiceCall/i.test(names)) return "voice";
+    return "unknown";
+  }
+
+  function rewritePressableControls(root, options = {}) {
+    let ordinal = 0;
+
+    function visit(node, depth = 0) {
+      if (depth > 14) return node;
+
+      if (Array.isArray(node)) {
+        let changed = false;
+        const next = node.map(child => {
+          const value = visit(child, depth + 1);
+          changed ||= value !== child;
+          return value;
+        });
+        return changed ? next : node;
+      }
+
+      if (!isElement(node)) return node;
+
+      const props = node.props ?? {};
+      const candidate = typeof props.onPress === "function"
+        && (!options.requireDisabled
+          || Object.prototype.hasOwnProperty.call(props, "disabled"));
+
+      if (candidate) {
+        const index = ordinal++;
+        let kind = controlKind(node);
+        if (kind === "unknown" && options.fallbackOrder) {
+          if (index === 0) kind = "voice";
+          else if (index === 1) kind = "video";
+        }
+
+        if ((kind === "voice" && options.hideVoice)
+          || (kind === "video" && options.hideVideo)) {
+          return null;
+        }
+      }
+
+      const children = childrenOf(node);
+      if (children == null) return node;
+      const nextChildren = visit(children, depth + 1);
+      return nextChildren === children
+        ? node
+        : rebuild(node, { children: nextChildren });
+    }
+
+    return visit(root);
+  }
+
   function pruneProfile(root) {
     if (!storage.profileHideCallButton || !isElement(root)) return root;
+
+    const semantic = rewritePressableControls(root, {
+      hideVoice: true,
+      hideVideo: false,
+      requireDisabled: false,
+      fallbackOrder: false,
+    });
+
+    if (semantic !== root) return semantic;
+
+    // Last-resort compatibility fallback for layouts where Discord has hidden
+    // the icon identity but still renders the traditional multi-action row.
     return removeLastPressable(root);
   }
 
@@ -180,37 +285,18 @@
       || !isElement(root)
     ) return root;
 
-    const children = childrenOf(root);
-    if (!Array.isArray(children)) return root;
-
-    const callVideoIndexes = children.flatMap((child, index) => {
-      if (
-        isElement(child)
-        && typeof child.props?.onPress === "function"
-        && Object.prototype.hasOwnProperty.call(child.props ?? {}, "disabled")
-      ) return [index];
-      return [];
+    return rewritePressableControls(root, {
+      hideVoice: storage.dmHideCallButton === true,
+      hideVideo: storage.dmHideVideoButton === true,
+      requireDisabled: true,
+      fallbackOrder: true,
     });
-
-    if (callVideoIndexes.length === 0) return root;
-
-    const drop = new Set();
-    if (storage.dmHideCallButton && callVideoIndexes[0] != null) {
-      drop.add(callVideoIndexes[0]);
-    }
-    if (storage.dmHideVideoButton && callVideoIndexes[1] != null) {
-      drop.add(callVideoIndexes[1]);
-    }
-
-    if (drop.size === 0) return root;
-    const kept = children.filter((_, index) => !drop.has(index));
-    return kept.length ? rebuild(root, { children: kept }) : root;
   }
 
   function pruneFriends(root) {
     if (!storage.friendsHideCallButton || !isElement(root)) return root;
 
-    return mapChildren(root, element => {
+    const indexed = mapChildren(root, element => {
       const actions = element.props?.accessibilityActions;
       const trailing = element.props?.trailing;
       const buttons = trailing?.props?.children;
@@ -234,6 +320,15 @@
           children: buttons.filter((_, i) => i !== index),
         }),
       });
+    });
+
+    // Backup for Discord variants where the accessibility-action array and
+    // trailing button list no longer line up exactly.
+    return rewritePressableControls(indexed, {
+      hideVoice: true,
+      hideVideo: false,
+      requireDisabled: false,
+      fallbackOrder: false,
     });
   }
 
@@ -260,9 +355,66 @@
     }
   }
 
+  function armCapturedFunctionGuard(path, label, apply) {
+    try {
+      const finder = B?.metro?.findByFilePath;
+      const jsxApi = B?.api?.react?.jsx;
+      if (
+        typeof finder !== "function"
+        || typeof jsxApi?.onJsxCreate !== "function"
+        || typeof jsxApi?.deleteJsxCreate !== "function"
+      ) return false;
+
+      const module = finder(path, false);
+      const component = module?.default;
+      const name = String(component?.displayName ?? component?.name ?? "");
+      if (typeof component !== "function" || !name) return false;
+
+      const Guarded = function HideCallButtonsCapturedGuard(props) {
+        try { return apply(component(props)); }
+        catch (error) {
+          try { V.logger?.error?.(`[Hide Call Buttons] captured ${label}`, error); } catch {}
+          return component(props);
+        }
+      };
+
+      const callback = (created, element) => {
+        if (created !== component || !element) return element;
+        try {
+          element.type = Guarded;
+          return element;
+        } catch {
+          return element;
+        }
+      };
+
+      jsxApi.onJsxCreate(name, callback);
+      runtime.patches.push(() => {
+        try { jsxApi.deleteJsxCreate(name, callback); } catch {}
+      });
+      runtime.captured[label] = true;
+      return true;
+    } catch (error) {
+      try { V.logger?.error?.(`[Hide Call Buttons] failed captured guard ${label}`, error); } catch {}
+      return false;
+    }
+  }
+
   function install() {
     runtime.cleanup();
 
+    // ShiggyCord starts Vendetta plugins after the initial UI settles. These
+    // JSX guards catch plain function references that Discord may already have
+    // captured before the normal export patch attaches.
+    armCapturedFunctionGuard(PATHS.profile, "profile", pruneProfile);
+    armCapturedFunctionGuard(
+      PATHS.voiceVideo,
+      "voiceVideo",
+      result => storage.hideVCVideoButton ? null : result,
+    );
+
+    // Keep the source-path render patches too. Memo exports (DM/Friends) are
+    // especially reliable here because parents retain the same memo object.
     armLazy(PATHS.profile, false, "default", "profile", pruneProfile);
     armLazy(PATHS.dmHeader, true, "type", "dmHeader", pruneDM);
     armLazy(PATHS.friends, true, "type", "friends", pruneFriends);
@@ -376,7 +528,7 @@
             marginTop: 14,
           },
         },
-        `v${VERSION} • profile:${runtime.armed.profile ? "armed" : "missing"} • dm:${runtime.armed.dmHeader ? "armed" : "missing"} • friends:${runtime.armed.friends ? "armed" : "missing"} • vc:${runtime.armed.voiceVideo ? "armed" : "missing"}`,
+        `v${VERSION} • profile:${runtime.armed.profile ? "armed" : "missing"}/${runtime.captured.profile ? "captured" : "late"} • dm:${runtime.armed.dmHeader ? "armed" : "missing"} • friends:${runtime.armed.friends ? "armed" : "missing"} • vc:${runtime.armed.voiceVideo ? "armed" : "missing"}/${runtime.captured.voiceVideo ? "captured" : "late"}`,
       ),
     );
   }

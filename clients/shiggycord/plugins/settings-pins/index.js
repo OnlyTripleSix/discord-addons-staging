@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.1.1-shiggy";
+  const VERSION = "1.1.2-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -273,82 +273,65 @@
     return true;
   }
 
-  function rendererConfigFor(key) {
-    try {
-      const constants = V.metro?.findByProps?.("SETTING_RENDERER_CONFIG");
-      return constants?.SETTING_RENDERER_CONFIG?.[key] ?? null;
-    } catch {
-      return null;
-    }
-  }
-
-  function injectPinRows(items) {
-    if (!Array.isArray(items)) return items;
-
-    // Ensure our row definitions exist in ShiggyCord's dynamic renderer config.
-    // This is safe here: syncPins only mutates registeredSections, not this list.
+  function refreshShiggySectionConfig(config) {
     try { syncPins(); } catch {}
 
-    // Never trust Discord's cached section membership for our rows. Remove any
-    // copy produced by the stale node, then inject exactly the pins selected in
-    // this plugin's storage into the final list Discord is about to render.
-    for (let i = items.length - 1; i >= 0; i -= 1) {
-      if (String(items[i]?.setting ?? "").startsWith(KEY_PREFIX)) {
-        items.splice(i, 1);
-      }
+    const sections = config?.sections;
+    if (!Array.isArray(sections)) return false;
+
+    const rows = shiggyRows();
+    if (!Array.isArray(rows)) return false;
+
+    const keys = rows
+      .map(row => String(row?.key ?? ""))
+      .filter(Boolean);
+
+    const section = sections.find(candidate =>
+      candidate
+      && Array.isArray(candidate.settings)
+      && (
+        candidate.label === SECTION
+        || candidate.title === SECTION
+        || candidate.settings.includes("SHIGGYCORD")
+        || candidate.settings.includes("BUNNY_PLUGINS")
+      )
+    );
+
+    if (!section) return false;
+
+    const current = section.settings;
+    const same = current.length === keys.length
+      && current.every((value, index) => String(value ?? "") === keys[index]);
+
+    if (!same) {
+      current.splice(0, current.length, ...keys);
     }
 
-    const ids = currentPins().filter(id => allPlugins()[id]);
-    if (!ids.length) return items;
-
-    let anchor = items.findIndex(item => item?.setting === "BUNNY_PLUGINS");
-    if (anchor < 0) anchor = items.findIndex(item => item?.setting === "SHIGGYCORD");
-    if (anchor < 0) return items;
-
-    const rowType = items[anchor]?.type;
-    if (rowType == null) return items;
-
-    const nextWasRow = items[anchor + 1]?.type === rowType;
-    const rows = [];
-
-    for (const id of ids) {
-      const key = pinRowKey(id);
-      const settingData = rendererConfigFor(key);
-      if (!settingData) continue;
-
-      rows.push({
-        type: rowType,
-        setting: key,
-        settingData,
-        start: false,
-        end: false,
-      });
-    }
-
-    if (!rows.length) return items;
-
-    if (items[anchor]?.end === true) items[anchor].end = false;
-    rows[rows.length - 1].end = !nextWasRow;
-    items.splice(anchor + 1, 0, ...rows);
-    return items;
+    return true;
   }
 
   function installSettingsListRepair() {
     if (settingsListRepairUnpatches.length) return true;
 
-    const findLazy = B?.metro?.findByFilePathLazy;
-    if (typeof findLazy !== "function") return false;
-
     try {
-      const rendererUtils = findLazy(
-        "modules/settings/native/renderer/SettingRendererUtils.tsx",
-        false,
+      const createListModule =
+        B?.metro?.findByPropsLazy?.("createList")
+        ?? V.metro?.findByProps?.("createList");
+
+      if (!createListModule) return false;
+
+      // This is the same layer ShiggyCord's own patchTabsUI uses. The important
+      // part is mutating args[0].sections, not the returned node.
+      settingsListRepairUnpatches.push(
+        V.patcher.before("createList", createListModule, args => {
+          try { refreshShiggySectionConfig(args?.[0]); } catch {}
+        }),
       );
 
       settingsListRepairUnpatches.push(
-        V.patcher.after("toSettingListItems", rendererUtils, (_args, result) => {
-          try { return injectPinRows(result); }
-          catch { return result; }
+        V.patcher.after("createList", createListModule, (args, result) => {
+          try { refreshShiggySectionConfig(args?.[0]); } catch {}
+          return result;
         }),
       );
 
@@ -444,6 +427,10 @@
           value: pinned,
           onValueChange(value) {
             setPinned(id, value);
+            try {
+              syncPins();
+              findSettingsTreeManager()?.clearCaches?.();
+            } catch {}
             forceUpdate();
           },
         }));

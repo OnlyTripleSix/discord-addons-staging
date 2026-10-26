@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord by injecting selected rows into Discord's final rendered settings list, bypassing stale cached section membership.",
+  "description": "Pin plugin settings into ShiggyCord by refreshing the live createList config before Discord builds Settings.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "2fc6effcd9b6f14a0b6a29acd085478703bdf8bf",
+  "hash": "710117d999554cf88dc7ed5527cf7867af983906",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.0.13-shiggy";
+  const VERSION = "1.0.14-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -22,6 +22,8 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
+  const startupRetryTimers = [];
+  const BLOCKLIST_PATH = "modules/settings/native/renderer/stores/SettingBlocklistStore.tsx";
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -224,15 +226,77 @@
       usePredicate: () => {
         if (!isPinned(id)) return false;
         const live = allPlugins()[id];
-
-        // Do not depend on getSettings(id) here. ShiggyCord starts enabled
-        // Vendetta plugins in staggered batches, so another plugin's settings
-        // component may not exist yet when Discord first evaluates this row.
-        // Returning false at that moment causes Discord's settings blocklist to
-        // hide the pin for the rest of the session.
         return live?.enabled === true;
       },
     };
+  }
+
+  function clearPinBlocklist() {
+    try {
+      const store = B?.metro?.findByFilePathLazy?.(BLOCKLIST_PATH, true);
+      if (!store?.getField || !store?.setState) return false;
+
+      const current = store.getField("blocklist");
+      if (!(current instanceof Set)) return false;
+
+      const next = new Set(current);
+      let changed = false;
+      for (const key of current) {
+        if (String(key ?? "").startsWith(KEY_PREFIX)) {
+          next.delete(key);
+          changed = true;
+        }
+      }
+
+      if (changed) store.setState({ blocklist: next });
+      return changed;
+    } catch {
+      return false;
+    }
+  }
+
+  function parsedVersion(plugin) {
+    try {
+      const match = String(plugin?.js ?? "").match(
+        /VERSION\s*=\s*["'](\d+)\.(\d+)\.(\d+)-shiggy["']/
+      );
+      if (!match) return [0, 0, 0];
+      return match.slice(1, 4).map(Number);
+    } catch {
+      return [0, 0, 0];
+    }
+  }
+
+  function compareVersion(a, b) {
+    for (let i = 0; i < 3; i += 1) {
+      if (a[i] !== b[i]) return a[i] - b[i];
+    }
+    return 0;
+  }
+
+  function disableOlderDuplicates() {
+    const all = allPlugins();
+    const current = all[SELF_ID];
+    if (!current) return 0;
+
+    const currentVersion = parsedVersion(current);
+    let stopped = 0;
+
+    for (const plugin of Object.values(all)) {
+      if (!plugin?.id || String(plugin.id) === SELF_ID) continue;
+      if (String(plugin?.manifest?.name ?? "") !== "Settings Pins") continue;
+      if (plugin.enabled !== true) continue;
+
+      const otherVersion = parsedVersion(plugin);
+      if (compareVersion(otherVersion, currentVersion) > 0) continue;
+
+      try {
+        V.plugins.stopPlugin(String(plugin.id), true);
+        stopped += 1;
+      } catch {}
+    }
+
+    return stopped;
   }
 
   function findSettingsTreeManager() {
@@ -375,11 +439,13 @@
 
   function syncPins() {
     ensurePinState();
-    const rows = shiggyRows();
-    if (!rows) return false;
 
     installSettingsTreeGuard();
     installSettingsListRepair();
+    clearPinBlocklist();
+
+    const rows = shiggyRows();
+    if (!rows) return false;
     removeOurRows(rows);
     wrapExistingShortcuts(rows);
 
@@ -396,6 +462,7 @@
     const pluginsIndex = rows.findIndex(row => row?.key === "BUNNY_PLUGINS");
     const insertAt = pluginsIndex >= 0 ? pluginsIndex + 1 : rows.length;
     rows.splice(insertAt, 0, ...pinRows);
+    clearPinBlocklist();
     return true;
   }
 
@@ -513,12 +580,31 @@
   return {
     onLoad() {
       ensurePinState();
-      installSettingsTreeGuard();
-      installSettingsListRepair();
+      disableOlderDuplicates();
       syncPins();
-      try { findSettingsTreeManager()?.clearCaches?.(); } catch {}
+
+      for (const delay of [500, 1500, 3000, 6000, 10000, 15000]) {
+        startupRetryTimers.push(setTimeout(() => {
+          try {
+            const stopped = disableOlderDuplicates();
+            const synced = syncPins();
+            if (stopped || synced) {
+              clearPinBlocklist();
+              findSettingsTreeManager()?.clearCaches?.();
+            }
+          } catch {}
+        }, delay));
+      }
+
+      try {
+        clearPinBlocklist();
+        findSettingsTreeManager()?.clearCaches?.();
+      } catch {}
     },
     onUnload() {
+      while (startupRetryTimers.length) {
+        try { clearTimeout(startupRetryTimers.pop()); } catch {}
+      }
       restoreExistingShortcuts();
       removeOurRows(shiggyRows());
       try { settingsTreeGuardUnpatch?.(); } catch {}

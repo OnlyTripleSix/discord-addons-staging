@@ -1,7 +1,7 @@
 {
   "name": "AMOLED Monochrome — Shiggy",
-  "description": "Shiggy-native true-black AMOLED palette with white monochrome accents. Folder geometry is handled separately by the companion folder-outline patch.",
-  "version": "2.0-test",
+  "description": "Shiggy-native true-black AMOLED palette with black controls and white text/icons. Folder geometry is handled separately by the companion folder-outline patch.",
+  "version": "2.0.1-test",
   "authors": [
     {
       "name": "ItsTripleSix"
@@ -315,10 +315,10 @@
       "#FFFFFF"
     ],
     "CONTROL_EXPRESSIVE_BACKGROUND_DEFAULT": [
-      "#FFFFFF"
+      "#000000"
     ],
     "CONTROL_EXPRESSIVE_BACKGROUND_ACTIVE": [
-      "#FFFFFF"
+      "#000000"
     ],
     "CONTROL_EXPRESSIVE_TEXT_DEFAULT": [
       "#FFFFFF"
@@ -390,10 +390,10 @@
       "#FFFFFF24"
     ],
     "CHECKBOX_BORDER_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "CHECKBOX_BORDER_SELECTED_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "CONTROL_CRITICAL_SECONDARY_BORDER_ACTIVE": [
       "#FFFFFF24"
@@ -402,16 +402,16 @@
       "#FFFFFF24"
     ],
     "CONTROL_OVERLAY_PRIMARY_BORDER_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "CONTROL_OVERLAY_SECONDARY_BORDER_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "CONTROL_SECONDARY_BORDER_ACTIVE": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "CONTROL_SECONDARY_BORDER_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "INPUT_BORDER_DEFAULT": [
       "#FFFFFF24"
@@ -435,7 +435,7 @@
       "#FFFFFF24"
     ],
     "RADIO_BORDER_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "REACTION_BORDER_DEFAULT": [
       "#FFFFFF24"
@@ -444,10 +444,10 @@
       "#FFFFFF24"
     ],
     "SWITCH_BORDER_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "SWITCH_BORDER_SELECTED_DEFAULT": [
-      "#FFFFFF24"
+      "#FFFFFF66"
     ],
     "REDESIGN_BUTTON_SECONDARY_BORDER": [
       "#FFFFFF24"
@@ -471,7 +471,7 @@
       "#000000"
     ],
     "BACKGROUND_BRAND": [
-      "#FFFFFF"
+      "#000000"
     ],
     "BACKGROUND_MODIFIER_HOVER": [
       "#FFFFFF0A"
@@ -538,6 +538,69 @@
     ],
     "BG_BACKDROP": [
       "#000000DD"
+    ],
+    "CONTROL_PRIMARY_BACKGROUND_DEFAULT": [
+      "#000000"
+    ],
+    "CONTROL_PRIMARY_BACKGROUND_ACTIVE": [
+      "#000000"
+    ],
+    "CONTROL_OVERLAY_PRIMARY_BACKGROUND_DEFAULT": [
+      "#000000"
+    ],
+    "CONTROL_OVERLAY_PRIMARY_BACKGROUND_ACTIVE": [
+      "#000000"
+    ],
+    "BUTTON_FILLED_BRAND_BACKGROUND": [
+      "#000000"
+    ],
+    "BUTTON_FILLED_BRAND_BACKGROUND_HOVER": [
+      "#000000"
+    ],
+    "BUTTON_FILLED_BRAND_BACKGROUND_ACTIVE": [
+      "#000000"
+    ],
+    "REDESIGN_BUTTON_PRIMARY_BACKGROUND": [
+      "#000000"
+    ],
+    "CHECKBOX_BACKGROUND_SELECTED_DEFAULT": [
+      "#000000"
+    ],
+    "RADIO_BACKGROUND_SELECTED_DEFAULT": [
+      "#000000"
+    ],
+    "SWITCH_BACKGROUND_SELECTED_DEFAULT": [
+      "#000000"
+    ],
+    "CHAT_INPUT_SEND_BUTTON_ACTIVE_BACKGROUND": [
+      "#000000"
+    ],
+    "CHAT_INPUT_ACTION_BUTTON_BACKGROUND": [
+      "#000000"
+    ],
+    "BUTTON_FILLED_BRAND_TEXT": [
+      "#FFFFFF"
+    ],
+    "BUTTON_OUTLINE_BRAND_TEXT": [
+      "#FFFFFF"
+    ],
+    "BUTTON_OUTLINE_PRIMARY_TEXT": [
+      "#FFFFFF"
+    ],
+    "CONTROL_ICON_ONLY_ICON_DEFAULT": [
+      "#FFFFFF"
+    ],
+    "CONTROL_ICON_ONLY_ICON_ACTIVE": [
+      "#FFFFFF"
+    ],
+    "CONTROL_PRIMARY_BORDER_DEFAULT": [
+      "#FFFFFF66"
+    ],
+    "CONTROL_PRIMARY_BORDER_ACTIVE": [
+      "#FFFFFF66"
+    ],
+    "BUTTON_OUTLINE_BRAND_BORDER_ACTIVE": [
+      "#FFFFFF66"
     ]
   },
   "rawColors": {

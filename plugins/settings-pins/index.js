@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.3.0-shiggy";
+  const VERSION = "1.3.1-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -22,8 +22,9 @@
   const originalExistingPredicates = new Map();
   let settingsTreeGuardUnpatch = null;
   let rendererConfigBridgeUnpatch = null;
+  let blocklistGuardUnpatch = null;
   const settingsListRepairUnpatches = [];
-  const diagnostics = { utilsPatches: 0, utilsHits: 0, validPins: 0, repairs: 0, bridge: 0 };
+  const diagnostics = { utilsPatches: 0, utilsHits: 0, validPins: 0, repairs: 0, bridge: 0, blocklist: 0, strips: 0 };
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
 
@@ -325,6 +326,88 @@
     }
   }
 
+  function pinnedRowKeys() {
+    return new Set(currentPins().map(pinRowKey));
+  }
+
+  function sanitizeBlocklist(set) {
+    if (!(set instanceof Set)) return set;
+
+    const pinned = pinnedRowKeys();
+    if (!pinned.size) return set;
+
+    let changed = false;
+    const next = new Set(set);
+
+    for (const key of pinned) {
+      if (next.delete(key)) {
+        changed = true;
+        diagnostics.strips += 1;
+      }
+    }
+
+    return changed ? next : set;
+  }
+
+  function findBlocklistStore() {
+    try {
+      const store = B?.metro?.findByFilePath?.(
+        "modules/settings/native/renderer/stores/SettingBlocklistStore.tsx",
+        true,
+      );
+      if (store?.getField && store?.setState) return store;
+    } catch {}
+
+    try {
+      const store = V.metro?.findByProps?.("getField", "setState");
+      if (store?.getField && store?.setState) return store;
+    } catch {}
+
+    return null;
+  }
+
+  function cleanCurrentBlocklist() {
+    const store = findBlocklistStore();
+    if (!store) return false;
+
+    try {
+      const current = store.getField("blocklist");
+      const next = sanitizeBlocklist(current);
+      if (next !== current) {
+        store.setState({ blocklist: next });
+        return true;
+      }
+    } catch {}
+
+    return false;
+  }
+
+  function installBlocklistGuard() {
+    if (blocklistGuardUnpatch) return true;
+
+    const store = findBlocklistStore();
+    if (!store || typeof store.setState !== "function") return false;
+
+    try {
+      blocklistGuardUnpatch = V.patcher.before("setState", store, args => {
+        const update = args?.[0];
+        if (!update || typeof update !== "object") return;
+
+        const current = update.blocklist;
+        if (!(current instanceof Set)) return;
+
+        const next = sanitizeBlocklist(current);
+        if (next !== current) update.blocklist = next;
+      });
+
+      diagnostics.blocklist = 1;
+      cleanCurrentBlocklist();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function findSettingsTreeManager() {
     try {
       const direct = V.metro?.findByProps?.("getAncestors", "isBlocked", "clearCaches")
@@ -530,6 +613,8 @@
   function syncPins() {
     ensurePinState();
     installRendererConfigBridge();
+    installBlocklistGuard();
+    cleanCurrentBlocklist();
     const rows = shiggyRows();
     if (!rows) return false;
 
@@ -661,7 +746,7 @@
       ] : []),
       React.createElement(RN.Text, {
         style: { color: C.muted, fontSize: 12, marginTop: 14 },
-      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • valid:${diagnostics.validPins} • bridge:${diagnostics.bridge} • utils:${diagnostics.utilsPatches} • hits:${diagnostics.utilsHits} • repairs:${diagnostics.repairs}`),
+      }, `v${VERSION} • pins:${currentPins().length} • rows:${shiggyRows()?.length ?? 0} • valid:${diagnostics.validPins} • bridge:${diagnostics.bridge} • block:${diagnostics.blocklist} • strips:${diagnostics.strips} • utils:${diagnostics.utilsPatches} • hits:${diagnostics.utilsHits} • repairs:${diagnostics.repairs}`),
     );
   }
 
@@ -669,6 +754,8 @@
     onLoad() {
       ensurePinState();
       installRendererConfigBridge();
+      installBlocklistGuard();
+      cleanCurrentBlocklist();
       installSettingsTreeGuard();
       installSettingsListRepair();
       syncPins();
@@ -682,6 +769,9 @@
       while (settingsListRepairUnpatches.length) {
         try { settingsListRepairUnpatches.pop()?.(); } catch {}
       }
+      try { blocklistGuardUnpatch?.(); } catch {}
+      blocklistGuardUnpatch = null;
+      diagnostics.blocklist = 0;
       try { rendererConfigBridgeUnpatch?.(); } catch {}
       rendererConfigBridgeUnpatch = null;
       diagnostics.bridge = 0;

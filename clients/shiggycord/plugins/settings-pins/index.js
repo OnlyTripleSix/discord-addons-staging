@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.2.3-shiggy";
+  const VERSION = "1.2.4-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -25,6 +25,7 @@
   const diagnostics = { utilsPatches: 0, utilsHits: 0, validPins: 0, repairs: 0 };
 
   const rootNavigation = B?.metro?.findByPropsLazy?.("getRootNavigationRef") ?? null;
+  const rendererConstants = B?.metro?.findByPropsLazy?.("SETTING_RENDERER_CONFIG") ?? null;
 
   const C = {
     bg: "#111214",
@@ -227,21 +228,11 @@
   }
 
   function rendererConfigFor(key) {
-    // Use the exact module Discord's SettingRendererUtils imports. ShiggyCord
-    // replaces SETTING_RENDERER_CONFIG on this exports object with a dynamic
-    // getter that includes registered plugin rows.
+    // This is intentionally the exact lookup ShiggyCord itself uses in
+    // patchTabsUI(). Its lazy proxy resolves the same exports object whose
+    // SETTING_RENDERER_CONFIG property ShiggyCord replaced with a dynamic getter.
     try {
-      const module = B?.metro?.findByFilePath?.(
-        "modules/user_settings/core/native/SettingsRendererConfig.tsx",
-        false,
-      );
-      const config = module?.SETTING_RENDERER_CONFIG?.[key];
-      if (config) return config;
-    } catch {}
-
-    try {
-      const constants = V.metro?.findByProps?.("SETTING_RENDERER_CONFIG");
-      return constants?.SETTING_RENDERER_CONFIG?.[key] ?? null;
+      return rendererConstants?.SETTING_RENDERER_CONFIG?.[key] ?? null;
     } catch {
       return null;
     }

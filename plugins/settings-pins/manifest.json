@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Adds startup and Settings-render recovery for late section registration.",
+  "description": "Pin plugin settings into ShiggyCord or hide existing non-core plugin shortcuts. Avoids startup blocklisting while plugins load in staggered batches.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "87d2af5a791843132ca89b64135e1cb87837c8d4",
+  "hash": "d077b8bbd4f848e23b5937dd0d64784defbd4144",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

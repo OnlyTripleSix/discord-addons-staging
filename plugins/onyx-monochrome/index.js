@@ -6,7 +6,7 @@
   if (!V?.metro?.common) return {};
 
   const { React, ReactNative: RN } = V.metro.common;
-  const VERSION = "1.1.0-shiggy";
+  const VERSION = "1.2.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -26,6 +26,7 @@
     V.metro?.findByProps?.("updateTheme");
 
   const snapshots = new Map();
+  const rawSnapshots = new Map();
   let appliedTheme = null;
 
   const WHITE_KEYS = [
@@ -109,6 +110,28 @@
     return true;
   }
 
+  function setRaw(key, value) {
+    const raw = tokenRef?.RawColor;
+    if (!raw || !(key in raw)) return false;
+    if (!rawSnapshots.has(key)) rawSnapshots.set(key, raw[key]);
+    try {
+      raw[key] = value;
+      return true;
+    } catch {
+      try {
+        Object.defineProperty(raw, key, {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          value
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+
   function refresh(theme) {
     try { AppearanceManager?.setShouldSyncAppearanceSettings?.(false); } catch {}
     try { AppearanceManager?.updateTheme?.(theme); } catch {}
@@ -131,8 +154,24 @@
       }
     }
 
+    for (const [key, original] of rawSnapshots) {
+      try {
+        tokenRef.RawColor[key] = original;
+      } catch {
+        try {
+          Object.defineProperty(tokenRef.RawColor, key, {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: original
+          });
+        } catch {}
+      }
+    }
+
     const theme = appliedTheme;
     snapshots.clear();
+    rawSnapshots.clear();
     appliedTheme = null;
     if (theme) refresh(theme);
   }
@@ -153,6 +192,44 @@
     for (const key of BLACK_ACCENT_SURFACES) changed += setSemantic(key, theme, makeDef("BLACK_500", 1)) ? 1 : 0;
     for (const key of WHITE_ACCENTS) changed += setSemantic(key, theme, makeDef("WHITE_500", 1)) ? 1 : 0;
     for (const key of WHITE_BORDERS) changed += setSemantic(key, theme, makeDef("WHITE_500", 0.45)) ? 1 : 0;
+
+    // Current Discord still reads some brand colors directly from RawColor.
+    // Only neutralize the brand/blurple ramps; never touch Onyx neutral/background ramps.
+    const whiteBrand = [
+      "BRAND_100","BRAND_130","BRAND_160","BRAND_200","BRAND_230","BRAND_260",
+      "BRAND_300","BRAND_330","BRAND_345","BRAND_360","BRAND_400","BRAND_430","BRAND_460",
+      "BLURPLE_100","BLURPLE_200","BLURPLE_300","BLURPLE_360","BLURPLE_400","BLURPLE_430","BLURPLE_460"
+    ];
+    const blackBrand = [
+      "BRAND_500","BRAND_530","BRAND_560","BRAND_600","BRAND_630","BRAND_660","BRAND_700","BRAND_730",
+      "BLURPLE_500","BLURPLE_530","BLURPLE_560","BLURPLE_600","BLURPLE_630","BLURPLE_660","BLURPLE_700"
+    ];
+    for (const key of whiteBrand) changed += setRaw(key, "#FFFFFF") ? 1 : 0;
+    for (const key of blackBrand) changed += setRaw(key, "#000000") ? 1 : 0;
+
+    // Explicit current mobile tokens used by primary buttons/tabs.
+    for (const key of [
+      "REDESIGN_BUTTON_PRIMARY_BACKGROUND",
+      "REDESIGN_BUTTON_PRIMARY_PRESSED_BACKGROUND",
+      "REDESIGN_BUTTON_PRIMARY_ALT_BACKGROUND",
+      "BUTTON_FILLED_BRAND_BACKGROUND",
+      "BUTTON_FILLED_BRAND_BACKGROUND_HOVER",
+      "BUTTON_FILLED_BRAND_BACKGROUND_ACTIVE"
+    ]) changed += setSemantic(key, theme, makeDef("BLACK_500", 1)) ? 1 : 0;
+
+    for (const key of [
+      "REDESIGN_BUTTON_PRIMARY_TEXT",
+      "REDESIGN_BUTTON_PRIMARY_ALT_TEXT",
+      "TAB_BAR_ITEM_ACTIVE",
+      "TAB_BAR_ITEM_SELECTED",
+      "TAB_BAR_ITEM_ACTIVE_ICON",
+      "TAB_BAR_ITEM_ACTIVE_TEXT",
+      "TAB_BAR_ITEM_SELECTED_ICON",
+      "TAB_BAR_ITEM_SELECTED_TEXT",
+      "TAB_BAR_INDICATOR",
+      "TEXT_LINK",
+      "TEXT_BRAND"
+    ]) changed += setSemantic(key, theme, makeDef("WHITE_500", 1)) ? 1 : 0;
 
     // Keep mentions/highlights visible without introducing a colored surface.
     changed += setSemantic("MENTION_BACKGROUND", theme, makeDef("WHITE_500", 0.10)) ? 1 : 0;

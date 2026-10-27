@@ -7,7 +7,7 @@
 
   const { React, ReactNative: RN } = V.metro.common;
   const { instead, after } = V.patcher;
-  const VERSION = "1.5.0-shiggy";
+  const VERSION = "1.6.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -95,8 +95,8 @@
     buttonHooks: false,
     iconAction: false,
     buttonHits: 0,
+    profileButtonHits: 0,
     iconHits: 0,
-    forcedRefreshes: 0,
     lastTheme: "unknown",
     cleanup() {
       for (const unpatch of runtime.unpatches.splice(0)) {
@@ -185,127 +185,6 @@
     return true;
   }
 
-  function forceRealRefresh() {
-    const theme = currentTheme();
-    runtime.lastTheme = theme;
-    if (!AppearanceManager?.updateTheme || theme === "unknown") return;
-
-    // updateTheme(sameTheme) is often a no-op. Briefly switch to a different
-    // native dark palette, then switch straight back so Discord rebuilds cached styles.
-    const temp = theme === "darker" ? "dark" : "darker";
-
-    try { AppearanceManager.setShouldSyncAppearanceSettings?.(false); } catch {}
-    try {
-      AppearanceManager.updateTheme(temp);
-      runtime.forcedRefreshes += 1;
-      setTimeout(() => {
-        try {
-          AppearanceManager.setShouldSyncAppearanceSettings?.(false);
-          AppearanceManager.updateTheme(theme);
-          runtime.forcedRefreshes += 1;
-        } catch {}
-      }, 60);
-    } catch {}
-  }
-
-  function moduleByPath(path, exportDefault = false) {
-    try {
-      return B?.metro?.findByFilePath?.(path, exportDefault)
-        ?? B?.metro?.findByFilePathLazy?.(path, exportDefault)
-        ?? null;
-    } catch {
-      return null;
-    }
-  }
-
-  function installButtonHooksGuard() {
-    const mod = moduleByPath(PATHS.buttonHooks, false);
-    if (!mod) return false;
-
-    try {
-      if (typeof mod.useButtonColorStyles === "function") {
-        runtime.unpatches.push(
-          after("useButtonColorStyles", mod, (args, result) => {
-            const variant = String(args?.[0] ?? "primary");
-            if (!result || typeof result !== "object") return result;
-
-            if (variant === "primary" || variant === "expressive") {
-              runtime.buttonHits += 1;
-              return {
-                ...result,
-                backgroundColor: ["#000000", "#000000"],
-                borderColor: ["#FFFFFF66", "#FFFFFF99"],
-                color: "#FFFFFF"
-              };
-            }
-
-            return result;
-          })
-        );
-      }
-
-      if (typeof mod.useButtonTextColorStyles === "function") {
-        runtime.unpatches.push(
-          after("useButtonTextColorStyles", mod, (args, result) => {
-            const variant = String(args?.[0] ?? "primary");
-            if (!result || typeof result !== "object") return result;
-
-            if (variant === "primary" || variant === "expressive") {
-              runtime.buttonHits += 1;
-              return { ...result, color: "#FFFFFF" };
-            }
-
-            return result;
-          })
-        );
-      }
-
-      runtime.buttonHooks = true;
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function installIconActionGuard() {
-    const target = moduleByPath(PATHS.iconActionButton, true);
-    if (!target) return false;
-
-    try {
-      const patchTarget =
-        typeof target === "function"
-          ? { default: target }
-          : target;
-
-      if (typeof patchTarget.default !== "function") return false;
-
-      runtime.unpatches.push(
-        after("default", patchTarget, (args, result) => {
-          const props = args?.[0] ?? {};
-          const variant = String(props?.variant ?? "filled");
-          if (variant !== "filled" || !React.isValidElement?.(result)) return result;
-
-          runtime.iconHits += 1;
-          const style = [
-            result.props?.style,
-            {
-              backgroundColor: "#000000",
-              borderWidth: 1,
-              borderColor: "#FFFFFF55"
-            }
-          ];
-
-          return React.cloneElement(result, { style });
-        })
-      );
-
-      runtime.iconAction = true;
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   function install() {
     installRawGuards();
     const resolverArmed = installResolverGuard();
@@ -323,10 +202,7 @@
       }
     } catch {}
 
-    setTimeout(forceRealRefresh, 250);
-    setTimeout(forceRealRefresh, 1500);
-    setTimeout(forceRealRefresh, 5000);
-
+    runtime.lastTheme = currentTheme();
     runtime.resolverArmed = resolverArmed;
   }
 
@@ -342,7 +218,7 @@
       React.createElement(
         RN.Text,
         { style: { color: "#B5BAC1", fontSize: 13, lineHeight: 19, marginBottom: 14 } },
-        "Keeps Discord's native AMOLED base and intercepts Discord's live color resolver so brand/blurple accents resolve as monochrome instead of relying on one-time palette mutations."
+        "Keeps Discord's native AMOLED base and directly overrides current Discord profile/button styling plus live semantic colors without theme switching."
       ),
       React.createElement(
         RN.Text,
@@ -350,29 +226,9 @@
         `Active native theme: ${currentTheme()}`
       ),
       React.createElement(
-        RN.Pressable,
-        {
-          onPress: forceRealRefresh,
-          style: {
-            backgroundColor: "#000000",
-            borderWidth: 1,
-            borderColor: "#FFFFFF66",
-            borderRadius: 8,
-            paddingVertical: 12,
-            paddingHorizontal: 14,
-            alignItems: "center"
-          }
-        },
-        React.createElement(
-          RN.Text,
-          { style: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" } },
-          "Force refresh"
-        )
-      ),
-      React.createElement(
         RN.Text,
         { style: { color: "#80848E", fontSize: 11, lineHeight: 16, marginTop: 14 } },
-        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • raw:${runtime.rawDescriptors.size} • resolveHits:${runtime.resolveHits} • rawHits:${runtime.rawHits} • buttons:${runtime.buttonHooks ? "armed" : "missing"}/${runtime.buttonHits} • icons:${runtime.iconAction ? "armed" : "missing"}/${runtime.iconHits} • refreshes:${runtime.forcedRefreshes} • hook:${runtime.themeHook ? "armed" : "missing"}`
+        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • resolveHits:${runtime.resolveHits} • buttons:${runtime.buttonHooks ? "armed" : "missing"}/${runtime.buttonHits} • profile:${runtime.profileButtonHits} • icons:${runtime.iconAction ? "armed" : "missing"}/${runtime.iconHits} • hook:${runtime.themeHook ? "armed" : "missing"}`
       )
     );
   }

@@ -7,7 +7,7 @@
 
   const { React, ReactNative: RN } = V.metro.common;
   const { instead, after } = V.patcher;
-  const VERSION = "1.7.0-shiggy";
+  const VERSION = "1.8.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -303,17 +303,29 @@
         ?? V.metro?.findByPropsLazy?.("jsx", "jsxs");
       if (!jsxRuntime) return false;
 
-      const buttonModule = moduleByPath("design/components/Button/native/Button.native.tsx", false);
-      const Button = buttonModule?.Button ?? null;
-      const iconAction = moduleByPath(PATHS.iconActionButton, true);
-
       const callback = (args, result) => {
         const Component = args?.[0];
         const props = args?.[1];
         if (!Component || !props) return result;
 
-        // Rewrite modern Discord primary buttons before the component renders.
-        if (Button && Component === Button) {
+        const names = [
+          Component?.displayName,
+          Component?.name,
+          Component?.type?.displayName,
+          Component?.type?.name,
+          Component?.render?.displayName,
+          Component?.render?.name
+        ].filter(Boolean).map(String);
+
+        const joined = names.join("|");
+
+        // Match by component shape/name instead of object identity because current
+        // Discord wraps/memoizes these before our plugin starts.
+        const isPrimaryButton =
+          /(?:^|\|)(?:Button|BaseTextButton|BaseButton)(?:$|\|)/.test(joined)
+          || joined.includes("TextButton");
+
+        if (isPrimaryButton) {
           const variant = String(props.variant ?? "primary");
           if (variant === "primary") {
             runtime.jsxButtons += 1;
@@ -336,10 +348,13 @@
           }
         }
 
-        // Filled action buttons such as the blue + / share controls.
-        if (iconAction && Component === iconAction) {
+        const isActionButton =
+          joined.includes("IconActionButton")
+          || joined.includes("MessagesItemAddFriendsWidget");
+
+        if (isActionButton) {
           const variant = String(props.variant ?? "filled");
-          if (variant === "filled") {
+          if (variant === "filled" || joined.includes("MessagesItemAddFriendsWidget")) {
             runtime.jsxActions += 1;
             try {
               return React.cloneElement(result, {

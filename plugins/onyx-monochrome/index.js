@@ -7,7 +7,7 @@
 
   const { React, ReactNative: RN } = V.metro.common;
   const { instead, after } = V.patcher;
-  const VERSION = "1.6.1-shiggy";
+  const VERSION = "1.7.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -97,6 +97,9 @@
     buttonHits: 0,
     profileButtonHits: 0,
     iconHits: 0,
+    jsxButtons: 0,
+    jsxActions: 0,
+    jsxArmed: false,
     lastTheme: "unknown",
     cleanup() {
       for (const unpatch of runtime.unpatches.splice(0)) {
@@ -293,11 +296,90 @@
     }
   }
 
+  function installJsxMonochromeGuard() {
+    try {
+      const jsxRuntime =
+        B?.metro?.findByPropsLazy?.("jsx", "jsxs")
+        ?? V.metro?.findByPropsLazy?.("jsx", "jsxs");
+      if (!jsxRuntime) return false;
+
+      const buttonModule = moduleByPath("design/components/Button/native/Button.native.tsx", false);
+      const Button = buttonModule?.Button ?? null;
+      const iconAction = moduleByPath(PATHS.iconActionButton, true);
+
+      const callback = (args, result) => {
+        const Component = args?.[0];
+        const props = args?.[1];
+        if (!Component || !props) return result;
+
+        // Rewrite modern Discord primary buttons before the component renders.
+        if (Button && Component === Button) {
+          const variant = String(props.variant ?? "primary");
+          if (variant === "primary") {
+            runtime.jsxButtons += 1;
+            try {
+              return React.cloneElement(result, {
+                ...result.props,
+                variant: "secondary",
+                style: [
+                  result.props?.style,
+                  {
+                    backgroundColor: "#000000",
+                    borderWidth: 1,
+                    borderColor: "#FFFFFF66"
+                  }
+                ]
+              });
+            } catch {
+              return result;
+            }
+          }
+        }
+
+        // Filled action buttons such as the blue + / share controls.
+        if (iconAction && Component === iconAction) {
+          const variant = String(props.variant ?? "filled");
+          if (variant === "filled") {
+            runtime.jsxActions += 1;
+            try {
+              return React.cloneElement(result, {
+                ...result.props,
+                variant: "outlined",
+                color: "#FFFFFF",
+                buttonTextColor: "#FFFFFF",
+                style: [
+                  result.props?.style,
+                  {
+                    backgroundColor: "#000000",
+                    borderWidth: 1,
+                    borderColor: "#FFFFFF55"
+                  }
+                ]
+              });
+            } catch {
+              return result;
+            }
+          }
+        }
+
+        return result;
+      };
+
+      runtime.unpatches.push(after("jsx", jsxRuntime, callback));
+      runtime.unpatches.push(after("jsxs", jsxRuntime, callback));
+      runtime.jsxArmed = true;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function install() {
     installRawGuards();
     const resolverArmed = installResolverGuard();
     installButtonHooksGuard();
     installIconActionGuard();
+    installJsxMonochromeGuard();
 
     try {
       if (AppearanceManager?.updateTheme) {
@@ -336,7 +418,7 @@
       React.createElement(
         RN.Text,
         { style: { color: "#80848E", fontSize: 11, lineHeight: 16, marginTop: 14 } },
-        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • resolveHits:${runtime.resolveHits} • buttons:${runtime.buttonHooks ? "armed" : "missing"}/${runtime.buttonHits} • profile:${runtime.profileButtonHits} • icons:${runtime.iconAction ? "armed" : "missing"}/${runtime.iconHits} • hook:${runtime.themeHook ? "armed" : "missing"}`
+        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • resolveHits:${runtime.resolveHits} • buttons:${runtime.buttonHooks ? "armed" : "missing"}/${runtime.buttonHits} • profile:${runtime.profileButtonHits} • icons:${runtime.iconAction ? "armed" : "missing"}/${runtime.iconHits} • jsx:${runtime.jsxArmed ? "armed" : "missing"} b:${runtime.jsxButtons} a:${runtime.jsxActions} • hook:${runtime.themeHook ? "armed" : "missing"}`
       )
     );
   }

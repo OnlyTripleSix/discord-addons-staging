@@ -1,13 +1,13 @@
 {
   "name": "Onyx Monochrome",
-  "description": "Keeps Discord's native Onyx AMOLED backgrounds intact while forcing foreground text and icons toward a white/gray monochrome palette.",
+  "description": "Keeps Discord's native Onyx AMOLED backgrounds intact while removing remaining brand/accent colors from controls, links, selected indicators, mentions, text and icons.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "01443c01096e104cb4d81ea15a81aab6668d40a0",
+  "hash": "6594db23e088dbda4d9e8be3f0fb58655340a88b",
   "vendetta": {
     "icon": "ThemeDarkIcon"
   }

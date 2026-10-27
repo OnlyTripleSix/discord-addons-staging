@@ -1,13 +1,13 @@
 {
   "name": "Onyx Monochrome",
-  "description": "Keeps Discord's native Onyx AMOLED backgrounds intact and persistently self-heals monochrome accent overrides after startup and theme refreshes.",
+  "description": "Keeps Discord's native AMOLED base intact while intercepting Discord's live color resolver and raw brand palette so blue accents resolve as monochrome.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "1753fdba63efea21d79b8213e695004ae2340fa1",
+  "hash": "1bf8f76cc50ae6cab168ec1b7ce295f115929b26",
   "vendetta": {
     "icon": "ThemeDarkIcon"
   }

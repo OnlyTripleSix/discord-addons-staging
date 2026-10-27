@@ -1,13 +1,13 @@
 {
   "name": "Onyx Monochrome",
-  "description": "Keeps Discord's native AMOLED base intact while directly patching current Discord button/action components and live color resolution for monochrome UI.",
+  "description": "Keeps Discord's native AMOLED base intact while directly overriding current profile/button styling and live semantic colors without theme switching.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "c6280fa7d4831ad5526d42825aa8a0c2c9503988",
+  "hash": "c9ba3ebffa5b9b5faaa6706882c1af4982d1ca6b",
   "vendetta": {
     "icon": "ThemeDarkIcon"
   }

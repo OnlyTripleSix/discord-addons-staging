@@ -1,13 +1,13 @@
 {
   "name": "Settings Pins",
-  "description": "Pin plugin settings into ShiggyCord with self-healing renderer integration, blocklist protection, forced settings refresh, and native row icons.",
+  "description": "Pin plugin settings only on the main Settings overview, not in submenus; hide non-core shortcuts.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "2870bd1ef5e568bf68c9fd9ed7e020695bb3e84c",
+  "hash": "461cacfcbccb9a705f4912ec4a5c461a37ce0696",
   "vendetta": {
     "icon": "PuzzlePieceIcon"
   }

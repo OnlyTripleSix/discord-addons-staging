@@ -8,7 +8,7 @@
   const { after } = V.patcher;
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
-  const VERSION = "1.3.7-shiggy";
+  const VERSION = "1.3.8-shiggy";
   const RUNTIME_KEY = "__itsTripleSixHideCallButtonsRuntime";
 
   const PATHS = {
@@ -34,6 +34,9 @@
 
   const runtime = {
     patches: [],
+    retryTimers: [],
+    installPasses: 0,
+    jsxSafetyNet: false,
     jsxMemoTargets: new WeakSet(),
     armed: {
       profile: false,
@@ -42,9 +45,13 @@
       voiceVideo: false,
     },
     cleanup() {
+      for (const timer of runtime.retryTimers.splice(0)) {
+        try { clearTimeout(timer); } catch {}
+      }
       for (const unpatch of runtime.patches.splice(0)) {
         try { unpatch?.(); } catch {}
       }
+      runtime.jsxSafetyNet = false;
       for (const key of Object.keys(runtime.armed)) runtime.armed[key] = false;
     },
   };
@@ -339,6 +346,7 @@
 
       runtime.patches.push(after("jsx", jsxRuntime, callback));
       runtime.patches.push(after("jsxs", jsxRuntime, callback));
+      runtime.jsxSafetyNet = true;
       return true;
     } catch (error) {
       try { V.logger?.error?.("[Hide Call Buttons] JSX safety net", error); } catch {}
@@ -346,11 +354,19 @@
     }
   }
 
-  function install() {
-    runtime.cleanup();
+  function installPass() {
+    // Rebuild every hook set from scratch. This is intentional: Shiggy/Vendetta
+    // starts plugins in staggered batches, while Discord may materialize these
+    // modules at different moments on different launches. Re-running the exact
+    // same known-good rules later binds them to the live targets for that session.
+    for (const unpatch of runtime.patches.splice(0)) {
+      try { unpatch?.(); } catch {}
+    }
+    for (const key of Object.keys(runtime.armed)) runtime.armed[key] = false;
+    runtime.jsxSafetyNet = false;
     runtime.jsxMemoTargets = new WeakSet();
+    runtime.installPasses += 1;
 
-    // Primary source-path patches stay unchanged from v1.3.6.
     armLazy(PATHS.profile, false, "default", "profile", pruneProfile);
     armLazy(PATHS.dmHeader, true, "type", "dmHeader", pruneDM);
     armLazy(PATHS.friends, true, "type", "friends", pruneFriends);
@@ -362,10 +378,20 @@
       result => storage.hideVCVideoButton ? null : result,
     );
 
-    // Safety net for Discord modules/components captured before Vendetta's
-    // staggered plugin startup finishes. It does not change the pruning rules;
-    // it only makes sure those same rules reach the component actually rendered.
     installJsxSafetyNet();
+  }
+
+  function install() {
+    runtime.cleanup();
+    runtime.installPasses = 0;
+
+    installPass();
+
+    // Cover ShiggyCord's staggered Vendetta startup and Discord's own lazy
+    // module materialization. The last pass remains the active hook set.
+    for (const delay of [750, 2000, 5000, 10000, 20000]) {
+      runtime.retryTimers.push(setTimeout(installPass, delay));
+    }
   }
 
   function SettingRow({ title, description, storageKey, forceUpdate }) {
@@ -469,7 +495,7 @@
             marginTop: 14,
           },
         },
-        `v${VERSION} • profile:${runtime.armed.profile ? "armed" : "missing"} • dm:${runtime.armed.dmHeader ? "armed" : "missing"} • friends:${runtime.armed.friends ? "armed" : "missing"} • vc:${runtime.armed.voiceVideo ? "armed" : "missing"}`,
+        `v${VERSION} • passes:${runtime.installPasses} • jsx:${runtime.jsxSafetyNet ? "armed" : "missing"} • profile:${runtime.armed.profile ? "armed" : "missing"} • dm:${runtime.armed.dmHeader ? "armed" : "missing"} • friends:${runtime.armed.friends ? "armed" : "missing"} • vc:${runtime.armed.voiceVideo ? "armed" : "missing"}`,
       ),
     );
   }

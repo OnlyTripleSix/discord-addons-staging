@@ -1,13 +1,13 @@
 {
   "name": "Account Switcher",
-  "description": "ShiggyCord account switcher with deterministic active-account notification isolation and current Discord toast compatibility.",
+  "description": "Native Add Account login, saved-account switching, and active-account notification isolation for ShiggyCord.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "2b926bf3374b7c94f623013810cf6bf1e4dd1b6e",
+  "hash": "5c9f4939627e4e3cfbf65a482d8f3392d2eb12f5",
   "vendetta": {
     "icon": "UserIcon"
   }

@@ -8,7 +8,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
   const SELF_ID = String(V.plugin?.id ?? "");
-  const VERSION = "1.3.3-shiggy";
+  const VERSION = "1.3.4-shiggy";
   const SECTION = "ShiggyCord";
   const KEY_PREFIX = "ITS666_SETTINGS_PIN_";
   const STATE_VERSION = 1;
@@ -519,8 +519,37 @@
     return true;
   }
 
+  // Only the Settings overview contains both of these top-level destinations.
+  // ShiggyCord reuses registered sections on nested pages such as Appearance.
+  function isSettingsOverview(node) {
+    if (!Array.isArray(node?.sections)) return false;
+    const keys = new Set();
+    for (const section of node.sections) {
+      if (!Array.isArray(section?.settings)) continue;
+      for (const key of section.settings) keys.add(String(key ?? ""));
+    }
+    return keys.has("ACCOUNT") && keys.has("APPEARANCE");
+  }
+
+  function stripPinsFromSubmenu(node) {
+    if (!Array.isArray(node?.sections) || isSettingsOverview(node)) return false;
+    let changed = false;
+    for (const section of node.sections) {
+      if (!Array.isArray(section?.settings)) continue;
+      const kept = section.settings.filter(
+        key => !String(key ?? "").startsWith(KEY_PREFIX)
+      );
+      if (kept.length !== section.settings.length) {
+        section.settings.splice(0, section.settings.length, ...kept);
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
   function repairSettingsNode(node) {
     if (!node || !Array.isArray(node.sections)) return false;
+    if (!isSettingsOverview(node)) return stripPinsFromSubmenu(node);
 
     // Keep ShiggyCord's dynamic renderer registry current first.
     try { syncPins(); } catch {}

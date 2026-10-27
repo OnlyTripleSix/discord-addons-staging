@@ -1,13 +1,13 @@
 {
   "name": "Onyx Monochrome",
-  "description": "Keeps Discord's native AMOLED base intact while matching wrapped current Discord button components by name and forcing monochrome primary/action controls.",
+  "description": "Keeps Discord's native AMOLED base intact while forcing all primary and filled JSX controls to monochrome regardless of wrapped component identity.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
   "main": "index.js",
-  "hash": "195182692774d6a6646969f27f0b3a8968eaff2d",
+  "hash": "c096781dbad931c19ff18184796cadccdd31ea14",
   "vendetta": {
     "icon": "ThemeDarkIcon"
   }

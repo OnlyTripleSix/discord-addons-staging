@@ -187,16 +187,9 @@
       || !isElement(root)
     ) return root;
 
-    const children = childrenOf(root);
-    // The DM controls are in their own pressable group, not always at the
-    // outermost element. Process only the group with native disabled buttons.
-    if (!Array.isArray(children)) {
-      return mapChildren(root, element => {
-        if (element === root || !Array.isArray(childrenOf(element))) return element;
-        return pruneDMDirect(element);
-      });
-    }
-    return pruneDMDirect(root);
+    // DM headers can wrap the actual buttons in one or more View elements.
+    // Work from the inside out so only local call/video button groups change.
+    return mapChildren(root, element => pruneDMDirect(element));
   }
 
   function pruneDMDirect(root) {

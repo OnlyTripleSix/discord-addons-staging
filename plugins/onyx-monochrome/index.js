@@ -7,7 +7,7 @@
 
   const { React, ReactNative: RN } = V.metro.common;
   const { instead, after } = V.patcher;
-  const VERSION = "1.4.0-shiggy";
+  const VERSION = "1.5.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -81,12 +81,21 @@
     "BLURPLE_500","BLURPLE_530","BLURPLE_560","BLURPLE_600","BLURPLE_630","BLURPLE_660","BLURPLE_700"
   ]);
 
+  const PATHS = {
+    buttonHooks: "design/components/Button/native/ButtonHooks.native.tsx",
+    iconActionButton: "modules/main_tabs_v2/native/shared_components/IconActionButton.tsx"
+  };
+
   const runtime = {
     unpatches: [],
     rawDescriptors: new Map(),
     resolveHits: 0,
     rawHits: 0,
     themeHook: false,
+    buttonHooks: false,
+    iconAction: false,
+    buttonHits: 0,
+    iconHits: 0,
     forcedRefreshes: 0,
     lastTheme: "unknown",
     cleanup() {
@@ -199,9 +208,109 @@
     } catch {}
   }
 
+  function moduleByPath(path, exportDefault = false) {
+    try {
+      return B?.metro?.findByFilePath?.(path, exportDefault)
+        ?? B?.metro?.findByFilePathLazy?.(path, exportDefault)
+        ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  function installButtonHooksGuard() {
+    const mod = moduleByPath(PATHS.buttonHooks, false);
+    if (!mod) return false;
+
+    try {
+      if (typeof mod.useButtonColorStyles === "function") {
+        runtime.unpatches.push(
+          after("useButtonColorStyles", mod, (args, result) => {
+            const variant = String(args?.[0] ?? "primary");
+            if (!result || typeof result !== "object") return result;
+
+            if (variant === "primary" || variant === "expressive") {
+              runtime.buttonHits += 1;
+              return {
+                ...result,
+                backgroundColor: ["#000000", "#000000"],
+                borderColor: ["#FFFFFF66", "#FFFFFF99"],
+                color: "#FFFFFF"
+              };
+            }
+
+            return result;
+          })
+        );
+      }
+
+      if (typeof mod.useButtonTextColorStyles === "function") {
+        runtime.unpatches.push(
+          after("useButtonTextColorStyles", mod, (args, result) => {
+            const variant = String(args?.[0] ?? "primary");
+            if (!result || typeof result !== "object") return result;
+
+            if (variant === "primary" || variant === "expressive") {
+              runtime.buttonHits += 1;
+              return { ...result, color: "#FFFFFF" };
+            }
+
+            return result;
+          })
+        );
+      }
+
+      runtime.buttonHooks = true;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function installIconActionGuard() {
+    const target = moduleByPath(PATHS.iconActionButton, true);
+    if (!target) return false;
+
+    try {
+      const patchTarget =
+        typeof target === "function"
+          ? { default: target }
+          : target;
+
+      if (typeof patchTarget.default !== "function") return false;
+
+      runtime.unpatches.push(
+        after("default", patchTarget, (args, result) => {
+          const props = args?.[0] ?? {};
+          const variant = String(props?.variant ?? "filled");
+          if (variant !== "filled" || !React.isValidElement?.(result)) return result;
+
+          runtime.iconHits += 1;
+          const style = [
+            result.props?.style,
+            {
+              backgroundColor: "#000000",
+              borderWidth: 1,
+              borderColor: "#FFFFFF55"
+            }
+          ];
+
+          return React.cloneElement(result, { style });
+        })
+      );
+
+      runtime.iconAction = true;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function install() {
     installRawGuards();
     const resolverArmed = installResolverGuard();
+    installButtonHooksGuard();
+    installIconActionGuard();
 
     try {
       if (AppearanceManager?.updateTheme) {
@@ -263,7 +372,7 @@
       React.createElement(
         RN.Text,
         { style: { color: "#80848E", fontSize: 11, lineHeight: 16, marginTop: 14 } },
-        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • raw:${runtime.rawDescriptors.size} • resolveHits:${runtime.resolveHits} • rawHits:${runtime.rawHits} • refreshes:${runtime.forcedRefreshes} • hook:${runtime.themeHook ? "armed" : "missing"}`
+        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • raw:${runtime.rawDescriptors.size} • resolveHits:${runtime.resolveHits} • rawHits:${runtime.rawHits} • buttons:${runtime.buttonHooks ? "armed" : "missing"}/${runtime.buttonHits} • icons:${runtime.iconAction ? "armed" : "missing"}/${runtime.iconHits} • refreshes:${runtime.forcedRefreshes} • hook:${runtime.themeHook ? "armed" : "missing"}`
       )
     );
   }

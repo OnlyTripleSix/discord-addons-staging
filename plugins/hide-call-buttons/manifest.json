@@ -1,6 +1,6 @@
 {
   "name": "Hide Call Buttons",
-  "description": "Hides call and video controls across current Discord surfaces with startup retry/self-healing hooks and diagnostics.",
+  "description": "Hide call/video controls with persistent source-targeted hooks, wrapped DM support, and per-surface render diagnostics (staging).",
   "authors": [
     {
       "name": "John",
@@ -14,7 +14,7 @@
     }
   ],
   "main": "index.js",
-  "hash": "0a2241f96a0b12c721fc943b8480e4c61bd1a29e",
+  "hash": "eefe3238813e55685d5465535848f18c2663a485",
   "vendetta": {
     "icon": "PhoneCallIcon"
   }

@@ -8,7 +8,7 @@
   const { after } = V.patcher;
   const { React, ReactNative: RN } = V.metro.common;
   const storage = V.plugin?.storage ?? {};
-  const VERSION = "1.3.8-shiggy";
+  const VERSION = "1.3.9-shiggy";
   const RUNTIME_KEY = "__itsTripleSixHideCallButtonsRuntime";
 
   const PATHS = {
@@ -35,9 +35,9 @@
   const runtime = {
     patches: [],
     retryTimers: [],
-    installPasses: 0,
-    jsxSafetyNet: false,
-    jsxMemoTargets: new WeakSet(),
+    patchedOwners: new WeakMap(),
+    renderCounts: { profile: 0, dmHeader: 0, friends: 0, voiceVideo: 0 },
+    prunedCounts: { profile: 0, dmHeader: 0, friends: 0, voiceVideo: 0 },
     armed: {
       profile: false,
       dmHeader: false,
@@ -51,7 +51,6 @@
       for (const unpatch of runtime.patches.splice(0)) {
         try { unpatch?.(); } catch {}
       }
-      runtime.jsxSafetyNet = false;
       for (const key of Object.keys(runtime.armed)) runtime.armed[key] = false;
     },
   };
@@ -189,6 +188,19 @@
     ) return root;
 
     const children = childrenOf(root);
+    // The DM controls are in their own pressable group, not always at the
+    // outermost element. Process only the group with native disabled buttons.
+    if (!Array.isArray(children)) {
+      return mapChildren(root, element => {
+        if (element === root || !Array.isArray(childrenOf(element))) return element;
+        return pruneDMDirect(element);
+      });
+    }
+    return pruneDMDirect(root);
+  }
+
+  function pruneDMDirect(root) {
+    const children = childrenOf(root);
     if (!Array.isArray(children)) return root;
 
     const callVideoIndexes = children.flatMap((child, index) => {
@@ -245,153 +257,112 @@
     });
   }
 
-  function armLazy(path, exportDefault, method, label, apply) {
+  function trackRender(label, apply) {
+    return result => {
+      runtime.renderCounts[label] += 1;
+      try {
+        const next = apply(result);
+        if (next !== result) runtime.prunedCounts[label] += 1;
+        return next;
+      } catch (error) {
+        try { V.logger?.error?.("[Hide Call Buttons] " + label, error); } catch {}
+        return result;
+      }
+    };
+  }
+
+  // Patch each exact module owner once. Do not detach and re-arm a render hook
+  // while the component is already being used by React.
+  function patchOwner(owner, key, label, apply) {
     try {
-      const finder = B?.metro?.findByFilePathLazy;
-      if (typeof finder !== "function") return false;
-
-      const target = finder(path, exportDefault);
-      const unpatch = after(method, target, (_args, result) => {
-        try { return apply(result); }
-        catch (error) {
-          try { V.logger?.error?.(`[Hide Call Buttons] ${label}`, error); } catch {}
-          return result;
-        }
-      });
-
+      if (!owner || typeof owner[key] !== "function") return false;
+      let methods = runtime.patchedOwners.get(owner);
+      if (methods?.has(key)) return true;
+      const unpatch = after(key, owner, (_args, result) => apply(result));
+      if (typeof unpatch !== "function") return false;
+      if (!methods) {
+        methods = new Set();
+        runtime.patchedOwners.set(owner, methods);
+      }
+      methods.add(key);
       runtime.patches.push(unpatch);
       runtime.armed[label] = true;
       return true;
     } catch (error) {
-      try { V.logger?.error?.(`[Hide Call Buttons] failed to arm ${label}`, error); } catch {}
+      try { V.logger?.error?.("[Hide Call Buttons] patch " + label, error); } catch {}
       return false;
     }
   }
 
-  function moduleDefault(path) {
+  function patchNamespace(ns, label, apply) {
     try {
-      const found = B?.metro?.findByFilePath?.(path, true);
-      return found ?? null;
-    } catch {
-      return null;
-    }
-  }
-
-  function ensureMemoPatch(component, path, label, apply) {
-    if (
-      !component
-      || typeof component !== "object"
-      || typeof component.type !== "function"
-      || runtime.jsxMemoTargets.has(component)
-    ) return;
-
-    const exact = moduleDefault(path);
-    if (exact !== component) return;
-
-    try {
-      const unpatch = after("type", component, (_args, result) => {
-        try { return apply(result); }
-        catch (error) {
-          try { V.logger?.error?.(`[Hide Call Buttons] JSX ${label}`, error); } catch {}
-          return result;
-        }
-      });
-      runtime.jsxMemoTargets.add(component);
-      runtime.patches.push(unpatch);
+      const exported = ns?.default;
+      if (exported && typeof exported === "object"
+        && typeof exported.type === "function") {
+        return patchOwner(exported, "type", label, apply);
+      }
+      if (typeof exported === "function") {
+        return patchOwner(ns, "default", label, apply);
+      }
     } catch {}
+    return false;
   }
 
-  function installJsxSafetyNet() {
+  function tryDirect(path, label, apply) {
     try {
-      const jsxRuntime = V.metro?.findByPropsLazy?.("jsx", "jsxs");
-      if (!jsxRuntime) return false;
-
-      const callback = (args, result) => {
-        const Component = args?.[0];
-        if (!Component) return result;
-
-        if (typeof Component === "function") {
-          const name = String(Component.displayName ?? Component.name ?? "");
-
-          if (name === "UserProfileContactButtons" && storage.profileHideCallButton) {
-            try {
-              return React.cloneElement(result, { disableCalls: true });
-            } catch {
-              return result;
-            }
-          }
-
-          if (name === "VideoButton" && storage.hideVCVideoButton) {
-            const exact = moduleDefault(PATHS.voiceVideo);
-            if (exact === Component) return null;
-          }
-
-          return result;
-        }
-
-        const innerName = String(
-          Component?.type?.displayName
-          ?? Component?.type?.name
-          ?? "",
-        );
-
-        if (innerName === "PrivateChannelButtons") {
-          ensureMemoPatch(Component, PATHS.dmHeader, "dmHeader", pruneDM);
-        } else if (innerName === "UserRow") {
-          ensureMemoPatch(Component, PATHS.friends, "friends", pruneFriends);
-        }
-
-        return result;
-      };
-
-      runtime.patches.push(after("jsx", jsxRuntime, callback));
-      runtime.patches.push(after("jsxs", jsxRuntime, callback));
-      runtime.jsxSafetyNet = true;
-      return true;
-    } catch (error) {
-      try { V.logger?.error?.("[Hide Call Buttons] JSX safety net", error); } catch {}
-      return false;
-    }
+      const module = B?.metro?.findByFilePath?.(path, false);
+      if (patchNamespace(module, label, apply)) return true;
+    } catch {}
+    try {
+      const component = B?.metro?.findByFilePath?.(path, true);
+      if (component && typeof component.type === "function") {
+        if (patchOwner(component, "type", label, apply)) return true;
+      }
+    } catch {}
+    return false;
   }
 
-  function installPass() {
-    // Rebuild every hook set from scratch. This is intentional: Shiggy/Vendetta
-    // starts plugins in staggered batches, while Discord may materialize these
-    // modules at different moments on different launches. Re-running the exact
-    // same known-good rules later binds them to the live targets for that session.
-    for (const unpatch of runtime.patches.splice(0)) {
-      try { unpatch?.(); } catch {}
+  function watchModule(path, label, apply) {
+    if (tryDirect(path, label, apply)) return;
+
+    // Bunny's lazy module resolver exposes a callback for materialization.
+    // Patch the actual exported component, not the lazy proxy placeholder.
+    try {
+      const lazy = B?.metro?.findByFilePathLazy?.(path, false);
+      const delay = lazy?.[Symbol.for("bunny.api.patcher.delay")];
+      if (typeof delay === "function") {
+        let cancelled = false;
+        const dispose = delay(ns => {
+          if (cancelled) return;
+          patchNamespace(ns, label, apply) || tryDirect(path, label, apply);
+        });
+        runtime.patches.push(() => {
+          cancelled = true;
+          try { dispose?.(); } catch {}
+        });
+      }
+    } catch {}
+
+    // Fallback for builds without a delayed resolver: keep looking briefly,
+    // but do NOT undo any successful patch during later passes.
+    for (const ms of [750, 2000, 5000, 10000, 20000]) {
+      runtime.retryTimers.push(setTimeout(() => {
+        if (!runtime.armed[label]) tryDirect(path, label, apply);
+      }, ms));
     }
-    for (const key of Object.keys(runtime.armed)) runtime.armed[key] = false;
-    runtime.jsxSafetyNet = false;
-    runtime.jsxMemoTargets = new WeakSet();
-    runtime.installPasses += 1;
-
-    armLazy(PATHS.profile, false, "default", "profile", pruneProfile);
-    armLazy(PATHS.dmHeader, true, "type", "dmHeader", pruneDM);
-    armLazy(PATHS.friends, true, "type", "friends", pruneFriends);
-    armLazy(
-      PATHS.voiceVideo,
-      false,
-      "default",
-      "voiceVideo",
-      result => storage.hideVCVideoButton ? null : result,
-    );
-
-    installJsxSafetyNet();
   }
 
   function install() {
     runtime.cleanup();
-    runtime.installPasses = 0;
+    runtime.patchedOwners = new WeakMap();
+    runtime.renderCounts = { profile: 0, dmHeader: 0, friends: 0, voiceVideo: 0 };
+    runtime.prunedCounts = { profile: 0, dmHeader: 0, friends: 0, voiceVideo: 0 };
 
-    installPass();
-
-    // Cover ShiggyCord's staggered Vendetta startup and Discord's own lazy
-    // module materialization. The last pass remains the active hook set.
-    for (const delay of [750, 2000, 5000, 10000, 20000]) {
-      runtime.retryTimers.push(setTimeout(installPass, delay));
-    }
+    watchModule(PATHS.profile, "profile", trackRender("profile", pruneProfile));
+    watchModule(PATHS.dmHeader, "dmHeader", trackRender("dmHeader", pruneDM));
+    watchModule(PATHS.friends, "friends", trackRender("friends", pruneFriends));
+    watchModule(PATHS.voiceVideo, "voiceVideo",
+      trackRender("voiceVideo", result => storage.hideVCVideoButton ? null : result));
   }
 
   function SettingRow({ title, description, storageKey, forceUpdate }) {
@@ -495,7 +466,7 @@
             marginTop: 14,
           },
         },
-        `v${VERSION} • passes:${runtime.installPasses} • jsx:${runtime.jsxSafetyNet ? "armed" : "missing"} • profile:${runtime.armed.profile ? "armed" : "missing"} • dm:${runtime.armed.dmHeader ? "armed" : "missing"} • friends:${runtime.armed.friends ? "armed" : "missing"} • vc:${runtime.armed.voiceVideo ? "armed" : "missing"}`,
+        `v${VERSION} • profile:${runtime.armed.profile ? "armed" : "missing"} ${runtime.prunedCounts.profile}/${runtime.renderCounts.profile} • dm:${runtime.armed.dmHeader ? "armed" : "missing"} ${runtime.prunedCounts.dmHeader}/${runtime.renderCounts.dmHeader} • friends:${runtime.armed.friends ? "armed" : "missing"} ${runtime.prunedCounts.friends}/${runtime.renderCounts.friends} • vc:${runtime.armed.voiceVideo ? "armed" : "missing"} ${runtime.prunedCounts.voiceVideo}/${runtime.renderCounts.voiceVideo}`,
       ),
     );
   }

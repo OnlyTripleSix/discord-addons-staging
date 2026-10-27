@@ -6,7 +6,7 @@
   if (!V?.metro?.common) return {};
 
   const { React, ReactNative: RN } = V.metro.common;
-  const VERSION = "1.2.0-shiggy";
+  const VERSION = "1.3.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -28,6 +28,7 @@
   const snapshots = new Map();
   const rawSnapshots = new Map();
   let appliedTheme = null;
+  let applying = false;
 
   const WHITE_KEYS = [
     "TEXT_STRONG","TEXT_DEFAULT","TEXT_NORMAL","TEXT_PRIMARY","TEXT_LINK","TEXT_BRAND",
@@ -137,7 +138,7 @@
     try { AppearanceManager?.updateTheme?.(theme); } catch {}
   }
 
-  function restore() {
+  function restore(refreshAfter = true) {
     if (!tokenRef?.SemanticColor) return;
 
     for (const [snapKey, original] of snapshots) {
@@ -173,14 +174,37 @@
     snapshots.clear();
     rawSnapshots.clear();
     appliedTheme = null;
-    if (theme) refresh(theme);
+    if (theme && refreshAfter) refresh(theme);
   }
 
-  function apply() {
-    restore();
+  function looksApplied() {
+    const theme = currentThemeKey();
+    if (!theme || theme.startsWith("bn-theme-") || !tokenRef?.SemanticColor) return false;
+
+    try {
+      const brand = tokenRef.RawColor?.BRAND_500;
+      const textBrand = tokenRef.SemanticColor?.TEXT_BRAND?.[theme];
+      const primary = tokenRef.SemanticColor?.REDESIGN_BUTTON_PRIMARY_BACKGROUND?.[theme];
+
+      const rawOkay = brand === "#000000";
+      const textOkay = textBrand?.raw === "WHITE_500";
+      const primaryOkay = !primary || primary?.raw === "BLACK_500";
+      return rawOkay && textOkay && primaryOkay;
+    } catch {
+      return false;
+    }
+  }
+
+  function apply(reason = "manual", force = true) {
+    if (applying) return false;
+    if (!force && looksApplied()) return true;
+
+    applying = true;
+    restore(false);
 
     const theme = currentThemeKey();
     if (!theme || theme.startsWith("bn-theme-") || !tokenRef?.SemanticColor) {
+      applying = false;
       return false;
     }
 
@@ -237,13 +261,77 @@
     changed += setSemantic("BACKGROUND_MENTIONED_HOVER", theme, makeDef("WHITE_500", 0.12)) ? 1 : 0;
 
     runtime.lastChanged = changed;
+    runtime.applyCount += 1;
+    runtime.lastReason = reason;
     refresh(theme);
+    applying = false;
     return true;
+  }
+
+  function scheduleApply(delay, reason, force = false) {
+    const timer = setTimeout(() => {
+      const before = looksApplied();
+      const ok = apply(reason, force);
+      if (ok && !before) runtime.healCount += 1;
+    }, delay);
+    runtime.timers.push(timer);
+  }
+
+  function installPersistence() {
+    try {
+      if (typeof V?.patcher?.after === "function" && AppearanceManager) {
+        runtime.unpatches.push(
+          V.patcher.after("updateTheme", AppearanceManager, () => {
+            if (applying) return;
+            scheduleApply(75, "updateTheme", false);
+            scheduleApply(400, "updateTheme-late", false);
+          })
+        );
+        runtime.themeHook = true;
+      }
+    } catch {}
+
+    runtime.watchdog = setInterval(() => {
+      if (!looksApplied()) {
+        runtime.healCount += 1;
+        apply("watchdog", true);
+      }
+    }, 5000);
+
+    for (const [delay, reason] of [
+      [250, "startup-250"],
+      [750, "startup-750"],
+      [1500, "startup-1500"],
+      [3000, "startup-3000"],
+      [5000, "startup-5000"],
+      [10000, "startup-10000"],
+      [20000, "startup-20000"]
+    ]) scheduleApply(delay, reason, false);
   }
 
   const runtime = {
     lastChanged: 0,
-    cleanup() { restore(); }
+    applyCount: 0,
+    healCount: 0,
+    lastReason: "none",
+    themeHook: false,
+    watchdog: null,
+    timers: [],
+    unpatches: [],
+    cleanup() {
+      for (const timer of runtime.timers.splice(0)) {
+        try { clearTimeout(timer); } catch {}
+      }
+      if (runtime.watchdog) {
+        try { clearInterval(runtime.watchdog); } catch {}
+        runtime.watchdog = null;
+      }
+      for (const unpatch of runtime.unpatches.splice(0)) {
+        try { unpatch?.(); } catch {}
+      }
+      runtime.themeHook = false;
+      restore(true);
+    }
   };
   globalThis[RUNTIME_KEY] = runtime;
 
@@ -290,15 +378,15 @@
       React.createElement(
         RN.Text,
         { style: { color: "#80848E", fontSize: 11, marginTop: 14 } },
-        `v${VERSION} • base:${appliedTheme ?? "not-applied"} • patched:${runtime.lastChanged}`
+        `v${VERSION} • base:${appliedTheme ?? "not-applied"} • patched:${runtime.lastChanged} • applies:${runtime.applyCount} • heals:${runtime.healCount} • hook:${runtime.themeHook ? "armed" : "missing"} • last:${runtime.lastReason}`
       )
     );
   }
 
   return {
     onLoad() {
-      setTimeout(apply, 250);
-      setTimeout(apply, 1500);
+      installPersistence();
+      apply("onLoad", true);
     },
     onUnload() {
       runtime.cleanup();

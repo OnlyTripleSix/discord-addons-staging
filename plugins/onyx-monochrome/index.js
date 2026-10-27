@@ -7,7 +7,7 @@
 
   const { React, ReactNative: RN } = V.metro.common;
   const { instead, after } = V.patcher;
-  const VERSION = "1.8.0-shiggy";
+  const VERSION = "1.9.0-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -99,6 +99,8 @@
     iconHits: 0,
     jsxButtons: 0,
     jsxActions: 0,
+    jsxPrimaryAny: 0,
+    jsxFilledAny: 0,
     jsxArmed: false,
     lastTheme: "unknown",
     cleanup() {
@@ -306,7 +308,7 @@
       const callback = (args, result) => {
         const Component = args?.[0];
         const props = args?.[1];
-        if (!Component || !props) return result;
+        if (!Component || !props || !React.isValidElement?.(result)) return result;
 
         const names = [
           Component?.displayName,
@@ -318,62 +320,63 @@
         ].filter(Boolean).map(String);
 
         const joined = names.join("|");
+        const variant = String(props.variant ?? "");
 
-        // Match by component shape/name instead of object identity because current
-        // Discord wraps/memoizes these before our plugin starts.
-        const isPrimaryButton =
-          /(?:^|\|)(?:Button|BaseTextButton|BaseButton)(?:$|\|)/.test(joined)
-          || joined.includes("TextButton");
+        // Global design-system rule: any primary control becomes monochrome.
+        // This avoids depending on Discord's wrapper/memo component identity.
+        if (variant === "primary") {
+          runtime.jsxPrimaryAny += 1;
+          if (
+            /(?:^|\|)(?:Button|BaseTextButton|BaseButton)(?:$|\|)/.test(joined)
+            || joined.includes("TextButton")
+          ) runtime.jsxButtons += 1;
 
-        if (isPrimaryButton) {
-          const variant = String(props.variant ?? "primary");
-          if (variant === "primary") {
-            runtime.jsxButtons += 1;
-            try {
-              return React.cloneElement(result, {
-                ...result.props,
-                variant: "secondary",
-                style: [
-                  result.props?.style,
-                  {
-                    backgroundColor: "#000000",
-                    borderWidth: 1,
-                    borderColor: "#FFFFFF66"
-                  }
-                ]
-              });
-            } catch {
-              return result;
-            }
+          try {
+            return React.cloneElement(result, {
+              ...result.props,
+              variant: "secondary",
+              color: "#FFFFFF",
+              buttonTextColor: "#FFFFFF",
+              style: [
+                result.props?.style,
+                {
+                  backgroundColor: "#000000",
+                  borderWidth: 1,
+                  borderColor: "#FFFFFF66"
+                }
+              ]
+            });
+          } catch {
+            return result;
           }
         }
 
-        const isActionButton =
-          joined.includes("IconActionButton")
-          || joined.includes("MessagesItemAddFriendsWidget");
+        // Global filled-control rule: covers action buttons whose component
+        // identity/name is hidden behind Discord wrappers.
+        if (variant === "filled") {
+          runtime.jsxFilledAny += 1;
+          if (
+            joined.includes("IconActionButton")
+            || joined.includes("MessagesItemAddFriendsWidget")
+          ) runtime.jsxActions += 1;
 
-        if (isActionButton) {
-          const variant = String(props.variant ?? "filled");
-          if (variant === "filled" || joined.includes("MessagesItemAddFriendsWidget")) {
-            runtime.jsxActions += 1;
-            try {
-              return React.cloneElement(result, {
-                ...result.props,
-                variant: "outlined",
-                color: "#FFFFFF",
-                buttonTextColor: "#FFFFFF",
-                style: [
-                  result.props?.style,
-                  {
-                    backgroundColor: "#000000",
-                    borderWidth: 1,
-                    borderColor: "#FFFFFF55"
-                  }
-                ]
-              });
-            } catch {
-              return result;
-            }
+          try {
+            return React.cloneElement(result, {
+              ...result.props,
+              variant: "outlined",
+              color: "#FFFFFF",
+              buttonTextColor: "#FFFFFF",
+              style: [
+                result.props?.style,
+                {
+                  backgroundColor: "#000000",
+                  borderWidth: 1,
+                  borderColor: "#FFFFFF55"
+                }
+              ]
+            });
+          } catch {
+            return result;
           }
         }
 
@@ -433,7 +436,7 @@
       React.createElement(
         RN.Text,
         { style: { color: "#80848E", fontSize: 11, lineHeight: 16, marginTop: 14 } },
-        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • resolveHits:${runtime.resolveHits} • buttons:${runtime.buttonHooks ? "armed" : "missing"}/${runtime.buttonHits} • profile:${runtime.profileButtonHits} • icons:${runtime.iconAction ? "armed" : "missing"}/${runtime.iconHits} • jsx:${runtime.jsxArmed ? "armed" : "missing"} b:${runtime.jsxButtons} a:${runtime.jsxActions} • hook:${runtime.themeHook ? "armed" : "missing"}`
+        `v${VERSION} • resolver:${runtime.resolverArmed ? "armed" : "missing"} • resolveHits:${runtime.resolveHits} • buttons:${runtime.buttonHooks ? "armed" : "missing"}/${runtime.buttonHits} • profile:${runtime.profileButtonHits} • icons:${runtime.iconAction ? "armed" : "missing"}/${runtime.iconHits} • jsx:${runtime.jsxArmed ? "armed" : "missing"} primary:${runtime.jsxPrimaryAny} filled:${runtime.jsxFilledAny} b:${runtime.jsxButtons} a:${runtime.jsxActions} • hook:${runtime.themeHook ? "armed" : "missing"}`
       )
     );
   }

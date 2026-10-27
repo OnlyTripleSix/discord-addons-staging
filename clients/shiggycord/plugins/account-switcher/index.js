@@ -7,7 +7,7 @@
   const { React, ReactNative: RN } = V.metro.common;
   const { instead } = V.patcher;
   const { storage } = V.plugin;
-  const VERSION = "2.5.1-shiggy";
+  const VERSION = "2.6.0-shiggy";
 
   storage.onlyActiveNotifications ??= true;
 
@@ -646,6 +646,46 @@
     if (activeOnly) armSwitchRepairs(target);
   }
 
+
+  // Open Discord's own multi-account login, including its MFA and challenge flow.
+  // Never emulate login, collect passwords, or replace the current session here.
+  function resolveNativeAddAccount() {
+    const named = find("openManageAccountsModal");
+    if (typeof named?.openManageAccountsModal === "function") {
+      return named.openManageAccountsModal;
+    }
+
+    const module = findModule(candidate => {
+      const fn = candidate?.default;
+      if (typeof fn !== "function") return false;
+      if (fn.name === "openManageAccountsModal") return true;
+      try {
+        const source = Function.prototype.toString.call(fn);
+        return source.includes("hideActionSheet")
+          && source.includes("pushLazy")
+          && source.includes("initialRouteName");
+      } catch {
+        return false;
+      }
+    });
+    return typeof module?.default === "function" ? module.default : null;
+  }
+
+  function openAddAccount() {
+    const open = resolveNativeAddAccount();
+    if (!open) {
+      toast("Discord's native Add Account screen is unavailable in this build. Existing accounts are unchanged.");
+      return;
+    }
+    try {
+      // ManageAccountsScreens.LOGIN routes to Discord's native
+      // Login component with isMultiAccount=true, preserving saved sessions.
+      open("LOGIN");
+    } catch (error) {
+      toast("Could not open Add Account: " + String(error?.message ?? error));
+    }
+  }
+
   function NotificationToggle({ refresh }) {
     const enabled = storage.onlyActiveNotifications === true;
 
@@ -773,6 +813,22 @@
         ]));
       }
     }
+
+
+    children.push(React.createElement(Pressable, {
+      key: "add-account",
+      onPress: openAddAccount,
+      accessibilityRole: "button",
+      style: {
+        backgroundColor: C.card2,
+        paddingHorizontal: 14,
+        paddingVertical: 13,
+        borderRadius: 9,
+        alignItems: "center",
+      },
+    }, React.createElement(RN.Text, {
+      style: { color: C.text, fontWeight: "700", fontSize: 14 },
+    }, "Add Account")));
 
     children.push(React.createElement(Pressable, {
       key: "refresh",

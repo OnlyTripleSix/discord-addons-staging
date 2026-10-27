@@ -1,613 +1,2000 @@
 {
-  "name": "AMOLED Monochrome — Shiggy",
-  "description": "Shiggy-native semantic-only AMOLED theme: true-black surfaces with white/gray text and icons. Raw Discord palette overrides intentionally omitted for current Discord compatibility.",
-  "version": "2.1.0-test",
+  "name": "Onyx Monochrome — Shiggy",
+  "description": "Native Shiggy spec-3 theme built from Discord 350.8's complete Onyx (midnight) semantic palette. Preserves genuine Onyx AMOLED surfaces while replacing Discord blue/blurple/brand accents with black and white.",
   "authors": [
     {
       "name": "ItsTripleSix"
     }
   ],
-  "semanticColors": {
-    "BACKGROUND_BASE_LOW": [
-      "#000000"
-    ],
-    "BACKGROUND_BASE_LOWER": [
-      "#000000"
-    ],
-    "BACKGROUND_BASE_LOWEST": [
-      "#000000"
-    ],
-    "BACKGROUND_SURFACE_HIGH": [
-      "#000000"
-    ],
-    "BACKGROUND_SURFACE_HIGHEST": [
-      "#000000"
-    ],
-    "BACKGROUND_FLOATING": [
-      "#000000"
-    ],
-    "BACKGROUND_SCRIM": [
-      "#000000"
-    ],
-    "BACKGROUND_PRIMARY": [
-      "#000000"
-    ],
-    "BACKGROUND_SECONDARY": [
-      "#000000"
-    ],
-    "BACKGROUND_SECONDARY_ALT": [
-      "#000000"
-    ],
-    "BACKGROUND_TERTIARY": [
-      "#000000"
-    ],
-    "BACKGROUND_MOBILE_PRIMARY": [
-      "#000000"
-    ],
-    "BACKGROUND_MOBILE_SECONDARY": [
-      "#000000"
-    ],
-    "HOME_BACKGROUND": [
-      "#000000"
-    ],
-    "CHAT_BACKGROUND": [
-      "#000000"
-    ],
-    "CHANNEL_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "PANEL_BG": [
-      "#000000"
-    ],
-    "BG_SURFACE_OVERLAY_TMP": [
-      "#000000"
-    ],
-    "BG_SURFACE_RAISED": [
-      "#000000"
-    ],
-    "BACKGROUND_APP_LAUNCHER_CARD_DEFAULT": [
-      "#000000"
-    ],
-    "BACKGROUND_APP_LAUNCHER_ROW_DEFAULT": [
-      "#000000"
-    ],
-    "BACKGROUND_MOD_NORMAL": [
-      "#000000"
-    ],
-    "BACKGROUND_MOD_SUBTLE": [
-      "#000000"
-    ],
-    "BACKGROUND_MOD_MUTED": [
-      "#000000"
-    ],
-    "BACKGROUND_MOD_STRONG": [
-      "#000000"
-    ],
-    "BACKGROUND_MESSAGE_HOVER": [
-      "#000000"
-    ],
-    "MESSAGE_BACKGROUND_HOVER": [
-      "#000000"
-    ],
-    "CARD_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CARD_MUTED_BG": [
-      "#000000"
-    ],
-    "CARD_MUTED_PRESSED_BG": [
-      "#000000"
-    ],
-    "CARD_SECONDARY_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "CARD_SECONDARY_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CARD_PRIMARY_BG": [
-      "#000000"
-    ],
-    "CARD_SECONDARY_BG": [
-      "#000000"
-    ],
-    "EMBED_BACKGROUND": [
-      "#000000"
-    ],
-    "REDESIGN_ACTIVITY_CARD_BACKGROUND": [
-      "#000000"
-    ],
-    "REDESIGN_ACTIVITY_CARD_BACKGROUND_PRESSED": [
-      "#000000"
-    ],
-    "REDESIGN_BUTTON_SECONDARY_BACKGROUND": [
-      "#000000"
-    ],
-    "REDESIGN_BUTTON_SECONDARY_ALT_BACKGROUND": [
-      "#000000"
-    ],
-    "REDESIGN_BUTTON_TERTIARY_BACKGROUND": [
-      "#000000"
-    ],
-    "REDESIGN_BUTTON_TERTIARY_PRESSED_BACKGROUND": [
-      "#000000"
-    ],
-    "REDESIGN_BUTTON_PRIMARY_PRESSED_BACKGROUND": [
-      "#000000"
-    ],
-    "REDESIGN_CHAT_INPUT_BACKGROUND": [
-      "#000000"
-    ],
-    "CHANNELTEXTAREA_BACKGROUND": [
-      "#000000"
-    ],
-    "CHAT_INPUT_BACKGROUND": [
-      "#000000"
-    ],
-    "INPUT_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "INTERACTIVE_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "INTERACTIVE_BACKGROUND_HOVER": [
-      "#000000"
-    ],
-    "INTERACTIVE_BACKGROUND_SELECTED": [
-      "#000000"
-    ],
-    "INTERACTIVE_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "MOBILE_CHANNEL_ITEM_BACKGROUND_SELECTED": [
-      "#000000"
-    ],
-    "MOBILE_EMOJI_BUTTON_BACKGROUND": [
-      "#000000"
-    ],
-    "MOBILE_GUILDBAR_ICON_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "MOBILE_SEGMENTED_CONTROL_BACKGROUND": [
-      "#000000"
-    ],
-    "MOBILE_EXPRESSION_PICKER_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "STAGE_CARD_PILL_BG": [
-      "#000000"
-    ],
-    "TABLEROW_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "TABLEROW_BACKGROUND_PRESSED": [
-      "#000000"
-    ],
-    "USER_PROFILE_CONTAINER_BACKGROUND": [
-      "#000000"
-    ],
-    "USER_PROFILE_HEADER_OVERFLOW_BACKGROUND": [
-      "#000000"
-    ],
-    "VOICE_VIDEO_VIDEO_TILE_BACKGROUND": [
-      "#000000"
-    ],
-    "VOICE_VIDEO_VIDEO_TILE_BLUR_FALLBACK": [
-      "#000000"
-    ],
-    "TYPING_INDICATOR_BG": [
-      "#000000"
-    ],
-    "GUILD_FOLDER_BACKGROUND": [
-      "#000000"
-    ],
-    "CONTROL_SECONDARY_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CONTROL_SECONDARY_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "CONTROL_CRITICAL_SECONDARY_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CONTROL_CRITICAL_SECONDARY_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "CONTROL_ICON_ONLY_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "CONTROL_OVERLAY_SECONDARY_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CONTROL_OVERLAY_SECONDARY_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "CHECKBOX_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "REACTION_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "ANDROID_NAVIGATION_BAR_BACKGROUND": [
-      "#000000"
-    ],
-    "ANDROID_NAVIGATION_SCRIM_BACKGROUND": [
-      "#000000"
-    ],
-    "TEXT_STRONG": [
-      "#FFFFFF"
-    ],
-    "TEXT_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "TEXT_NORMAL": [
-      "#FFFFFF"
-    ],
-    "TEXT_PRIMARY": [
-      "#FFFFFF"
-    ],
-    "TEXT_SECONDARY": [
-      "#A0A0A0"
-    ],
-    "TEXT_SUBTLE": [
-      "#777777"
-    ],
-    "TEXT_LOW_CONTRAST": [
-      "#777777"
-    ],
-    "TEXT_MUTED_ON_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "TEXT_MESSAGE_PREVIEW_LOW_SAT": [
-      "#FFFFFF"
-    ],
-    "TEXT_LINK": [
-      "#FFFFFF"
-    ],
-    "TEXT_LINK_LOW_SATURATION": [
-      "#FFFFFF"
-    ],
-    "TEXT_BRAND": [
-      "#FFFFFF"
-    ],
-    "HEADER_PRIMARY": [
-      "#FFFFFF"
-    ],
-    "HEADER_SECONDARY": [
-      "#A0A0A0"
-    ],
-    "INTERACTIVE_TEXT_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "INTERACTIVE_TEXT_ACTIVE": [
-      "#FFFFFF"
-    ],
-    "INTERACTIVE_ICON_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "INTERACTIVE_ICON_HOVER": [
-      "#FFFFFF"
-    ],
-    "INTERACTIVE_ICON_ACTIVE": [
-      "#FFFFFF"
-    ],
-    "INTERACTIVE_NORMAL": [
-      "#FFFFFF"
-    ],
-    "INTERACTIVE_HOVER": [
-      "#FFFFFF"
-    ],
-    "INTERACTIVE_ACTIVE": [
-      "#FFFFFF"
-    ],
-    "CHANNEL_ICON": [
-      "#FFFFFF"
-    ],
-    "REDESIGN_CHANNEL_NAME_TEXT": [
-      "#FFFFFF"
-    ],
-    "MOBILE_HEADER_ICON_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "MOBILE_HEADER_ICON_ACTIVE": [
-      "#FFFFFF"
-    ],
-    "MOBILE_TEXT_HEADING_PRIMARY": [
-      "#FFFFFF"
-    ],
-    "CONTROL_EXPRESSIVE_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CONTROL_EXPRESSIVE_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "CONTROL_EXPRESSIVE_TEXT_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "CONTROL_BRAND_FOREGROUND": [
-      "#FFFFFF"
-    ],
-    "CONTROL_BRAND_FOREGROUND_NEW": [
-      "#FFFFFF"
-    ],
-    "CONTROL_PRIMARY_TEXT_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "CONTROL_SECONDARY_TEXT_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "CONTROL_OVERLAY_PRIMARY_TEXT_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "CONTROL_OVERLAY_SECONDARY_TEXT_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "CHAT_INPUT_ACTION_BUTTON_ICON_DEFAULT_TINT": [
-      "#FFFFFF"
-    ],
-    "CHAT_INPUT_ACTION_ICON_ACTIVE_TINT": [
-      "#FFFFFF"
-    ],
-    "CHAT_INPUT_ICON_DEFAULT_TINT": [
-      "#FFFFFF"
-    ],
-    "CHAT_INPUT_SEND_BUTTON_ICON_ACTIVE_TINT": [
-      "#FFFFFF"
-    ],
-    "CHECKBOX_ICON_ACTIVE": [
-      "#FFFFFF"
-    ],
-    "STATUS_BRAND": [
-      "#FFFFFF"
-    ],
-    "THREAD_CHANNEL_SPINE": [
-      "#FFFFFF"
-    ],
-    "WHITE": [
-      "#FFFFFF"
-    ],
-    "APP_FRAME_BORDER": [
-      "#FFFFFF40"
-    ],
-    "BORDER_NORMAL": [
-      "#FFFFFF40"
-    ],
-    "BORDER_SUBTLE": [
-      "#FFFFFF40"
-    ],
-    "BORDER_MUTED": [
-      "#FFFFFF40"
-    ],
-    "BORDER_FAINT": [
-      "#FFFFFF40"
-    ],
-    "BORDER_STRONG": [
-      "#FFFFFF40"
-    ],
-    "CARD_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "CHAT_BORDER": [
-      "#FFFFFF24"
-    ],
-    "CHECKBOX_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "CHECKBOX_BORDER_SELECTED_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "CONTROL_CRITICAL_SECONDARY_BORDER_ACTIVE": [
-      "#FFFFFF24"
-    ],
-    "CONTROL_CRITICAL_SECONDARY_BORDER_DEFAULT": [
-      "#FFFFFF24"
-    ],
-    "CONTROL_OVERLAY_PRIMARY_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "CONTROL_OVERLAY_SECONDARY_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "CONTROL_SECONDARY_BORDER_ACTIVE": [
-      "#FFFFFF40"
-    ],
-    "CONTROL_SECONDARY_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "INPUT_BORDER_DEFAULT": [
-      "#FFFFFF24"
-    ],
-    "MOBILE_CHATINPUT_BORDER_ACTIVE": [
-      "#FFFFFF24"
-    ],
-    "MOBILE_CHATINPUT_BORDER_DEFAULT": [
-      "#FFFFFF24"
-    ],
-    "MOBILE_COACHMARK_BORDER_DEFAULT": [
-      "#FFFFFF24"
-    ],
-    "MOBILE_COMMAND_BAR_DIVIDER": [
-      "#FFFFFF24"
-    ],
-    "MOBILE_FLOATING_ACCESSORY_BORDER": [
-      "#FFFFFF24"
-    ],
-    "MOBILE_HEADER_BORDER": [
-      "#FFFFFF24"
-    ],
-    "RADIO_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "REACTION_BORDER_DEFAULT": [
-      "#FFFFFF24"
-    ],
-    "STANDALONE_CHANNEL_HEADER_BORDER": [
-      "#FFFFFF24"
-    ],
-    "SWITCH_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "SWITCH_BORDER_SELECTED_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "REDESIGN_BUTTON_SECONDARY_BORDER": [
-      "#FFFFFF40"
-    ],
-    "TEXT_MUTED": [
-      "#777777"
-    ],
-    "REDESIGN_CHANNEL_NAME_MUTED_TEXT": [
-      "#8A8A8A"
-    ],
-    "INTERACTIVE_MUTED": [
-      "#777777"
-    ],
-    "CHANNELS_DEFAULT": [
-      "#A0A0A0"
-    ],
-    "REDESIGN_CHANNEL_CATEGORY_NAME_TEXT": [
-      "#777777"
-    ],
-    "BACKGROUND_ACCENT": [
-      "#000000"
-    ],
-    "BACKGROUND_BRAND": [
-      "#000000"
-    ],
-    "BACKGROUND_MODIFIER_HOVER": [
-      "#FFFFFF0A"
-    ],
-    "BACKGROUND_MODIFIER_ACTIVE": [
-      "#FFFFFF12"
-    ],
-    "BACKGROUND_MODIFIER_SELECTED": [
-      "#FFFFFF18"
-    ],
-    "BACKGROUND_MODIFIER_ACCENT": [
-      "#FFFFFF18"
-    ],
-    "BACKGROUND_MENTIONED": [
-      "#FFFFFF12"
-    ],
-    "BACKGROUND_MENTIONED_HOVER": [
-      "#FFFFFF18"
-    ],
-    "MESSAGE_MENTIONED_BACKGROUND_DEFAULT": [
-      "#FFFFFF12"
-    ],
-    "MESSAGE_MENTIONED_BACKGROUND_HOVER": [
-      "#FFFFFF18"
-    ],
-    "MESSAGE_HIGHLIGHT_BACKGROUND_DEFAULT": [
-      "#FFFFFF12"
-    ],
-    "MESSAGE_HIGHLIGHT_BACKGROUND_HOVER": [
-      "#FFFFFF18"
-    ],
-    "MENTION_BACKGROUND": [
-      "#FFFFFF18"
-    ],
-    "MENTION_FOREGROUND": [
-      "#FFFFFF"
-    ],
-    "KEYWORD_HIGHLIGHT_BACKGROUND": [
-      "#FFFFFF18"
-    ],
-    "MOBILE_SEGMENTED_CONTROL_INDICATOR_BACKGROUND": [
-      "#FFFFFF28"
-    ],
-    "PROGRESSBAR_TRACK_BACKGROUND": [
-      "#FFFFFF22"
-    ],
-    "SCROLLBAR_AUTO_TRACK": [
-      "#000000"
-    ],
-    "SCROLLBAR_AUTO_THUMB": [
-      "#FFFFFF55"
-    ],
-    "SCROLLBAR_THIN_TRACK": [
-      "#000000"
-    ],
-    "SCROLLBAR_THIN_THUMB": [
-      "#FFFFFF55"
-    ],
-    "ANDROID_RIPPLE": [
-      "#FFFFFF22"
-    ],
-    "MOBILE_ANDROID_BUTTON_BACKGROUND_RIPPLE": [
-      "#FFFFFF22"
-    ],
-    "BG_BACKDROP": [
-      "#000000DD"
-    ],
-    "CONTROL_PRIMARY_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CONTROL_PRIMARY_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "CONTROL_OVERLAY_PRIMARY_BACKGROUND_DEFAULT": [
-      "#000000"
-    ],
-    "CONTROL_OVERLAY_PRIMARY_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "BUTTON_FILLED_BRAND_BACKGROUND": [
-      "#000000"
-    ],
-    "BUTTON_FILLED_BRAND_BACKGROUND_HOVER": [
-      "#000000"
-    ],
-    "BUTTON_FILLED_BRAND_BACKGROUND_ACTIVE": [
-      "#000000"
-    ],
-    "REDESIGN_BUTTON_PRIMARY_BACKGROUND": [
-      "#000000"
-    ],
-    "CHECKBOX_BACKGROUND_SELECTED_DEFAULT": [
-      "#000000"
-    ],
-    "RADIO_BACKGROUND_SELECTED_DEFAULT": [
-      "#000000"
-    ],
-    "SWITCH_BACKGROUND_SELECTED_DEFAULT": [
-      "#000000"
-    ],
-    "CHAT_INPUT_SEND_BUTTON_ACTIVE_BACKGROUND": [
-      "#000000"
-    ],
-    "CHAT_INPUT_ACTION_BUTTON_BACKGROUND": [
-      "#000000"
-    ],
-    "BUTTON_FILLED_BRAND_TEXT": [
-      "#FFFFFF"
-    ],
-    "BUTTON_OUTLINE_BRAND_TEXT": [
-      "#FFFFFF"
-    ],
-    "BUTTON_OUTLINE_PRIMARY_TEXT": [
-      "#FFFFFF"
-    ],
-    "CONTROL_ICON_ONLY_ICON_DEFAULT": [
-      "#FFFFFF"
-    ],
-    "CONTROL_ICON_ONLY_ICON_ACTIVE": [
-      "#FFFFFF"
-    ],
-    "CONTROL_PRIMARY_BORDER_DEFAULT": [
-      "#FFFFFF40"
-    ],
-    "CONTROL_PRIMARY_BORDER_ACTIVE": [
-      "#FFFFFF40"
-    ],
-    "BUTTON_OUTLINE_BRAND_BORDER_ACTIVE": [
-      "#FFFFFF66"
-    ],
-    "BACKGROUND_NESTED_FLOATING": [
-      "#000000"
-    ],
-    "EMBED_BACKGROUND_ALTERNATE": [
-      "#000000"
-    ]
-  },
-  "spec": 2
+  "version": "3.0.0-test",
+  "type": "color",
+  "spec": 3,
+  "main": {
+    "type": "dark",
+    "semantic": {
+      "ACTIVITY_TIMEBAR_PROGRESS_BACKGROUND": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "ANDROID_NAVIGATION_BAR_BACKGROUND": {
+        "type": "color",
+        "value": "PLUM_24"
+      },
+      "ANDROID_NAVIGATION_SCRIM_BACKGROUND": {
+        "type": "color",
+        "value": "PLUM_24",
+        "opacity": 0.5
+      },
+      "APP_FRAME_BORDER": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "APP_MESSAGE_EMBED_SECONDARY_TEXT": {
+        "type": "color",
+        "value": "WHITE",
+        "opacity": 0.7
+      },
+      "BACKGROUND_ACCENT": {
+        "type": "color",
+        "value": "PLUM_17"
+      },
+      "BACKGROUND_APP_LAUNCHER_CARD_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_APP_LAUNCHER_ROW_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_BASE_LOW": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "BACKGROUND_BASE_LOWER": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "BACKGROUND_BASE_LOWEST": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "BACKGROUND_BRAND": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "BACKGROUND_CODE": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_FEEDBACK_CRITICAL": {
+        "type": "color",
+        "value": "OPACITY_RED_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_FEEDBACK_INFO": {
+        "type": "color",
+        "value": "OPACITY_BLUE_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_FEEDBACK_NOTIFICATION": {
+        "type": "color",
+        "value": "RED_NEW_50"
+      },
+      "BACKGROUND_FEEDBACK_POSITIVE": {
+        "type": "color",
+        "value": "OPACITY_GREEN_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_FEEDBACK_WARNING": {
+        "type": "color",
+        "value": "OPACITY_YELLOW_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_MOD_MUTED": {
+        "type": "color",
+        "value": "OPACITY_8",
+        "opacity": 0.0784313725490196
+      },
+      "BACKGROUND_MOD_NORMAL": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "BACKGROUND_MOD_STRONG": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "BACKGROUND_MOD_SUBTLE": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "BACKGROUND_SCRIM": {
+        "type": "color",
+        "value": "OPACITY_BLACK_80",
+        "opacity": 0.8
+      },
+      "BACKGROUND_SCRIM_LIGHTBOX": {
+        "type": "color",
+        "value": "OPACITY_BLACK_92",
+        "opacity": 0.9215686274509803
+      },
+      "BACKGROUND_SECONDARY_ALT": {
+        "type": "color",
+        "value": "PLUM_17"
+      },
+      "BACKGROUND_SURFACE_HIGH": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "BACKGROUND_SURFACE_HIGHEST": {
+        "type": "color",
+        "value": "NEUTRAL_88"
+      },
+      "BACKGROUND_TILE_GRADIENT_PINK_END": {
+        "type": "color",
+        "value": "ILLO_PINK_70",
+        "opacity": 0.3
+      },
+      "BACKGROUND_TILE_GRADIENT_PINK_START": {
+        "type": "color",
+        "value": "ILLO_PINK_50",
+        "opacity": 0.3
+      },
+      "BACKGROUND_VOICE_MUTED": {
+        "type": "color",
+        "value": "OPACITY_RED_12",
+        "opacity": 0.12156862745098039
+      },
+      "BADGE_COMMON_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "BADGE_COMMON_BORDER": {
+        "type": "color",
+        "value": "NEUTRAL_35"
+      },
+      "BADGE_COMMON_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_15"
+      },
+      "BADGE_CRITICAL_BACKGROUND": {
+        "type": "color",
+        "value": "RED_NEW_50"
+      },
+      "BADGE_CRITICAL_BORDER": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "BADGE_CRITICAL_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_EPIC_BACKGROUND": {
+        "type": "color",
+        "value": "ILLO_PURPLE_40",
+        "opacity": 0.24
+      },
+      "BADGE_EPIC_BORDER_GRADIENT_START": {
+        "type": "color",
+        "value": "ILLO_PINK_40"
+      },
+      "BADGE_EPIC_TEXT": {
+        "type": "color",
+        "value": "ILLO_PURPLE_30"
+      },
+      "BADGE_EXPRESSIVE_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_EXPRESSIVE_BORDER": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_EXPRESSIVE_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_71"
+      },
+      "BADGE_INVERTED_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_INVERTED_BORDER": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_INVERTED_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "BADGE_MYTHIC_BACKGROUND": {
+        "type": "color",
+        "value": "ILLO_ORANGE_40",
+        "opacity": 0.24
+      },
+      "BADGE_MYTHIC_BORDER_GRADIENT_START": {
+        "type": "color",
+        "value": "ILLO_YELLOW_40"
+      },
+      "BADGE_MYTHIC_TEXT": {
+        "type": "color",
+        "value": "ILLO_ORANGE_30"
+      },
+      "BADGE_NOTIFICATION_BACKGROUND": {
+        "type": "color",
+        "value": "RED_NEW_50"
+      },
+      "BADGE_NOTIFICATION_BORDER": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "BADGE_NOTIFICATION_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_PREMIUM_BACKGROUND_GRADIENT_END": {
+        "type": "color",
+        "value": "PREMIUM_TIER_2_PINK_FOR_GRADIENTS"
+      },
+      "BADGE_PREMIUM_BACKGROUND_GRADIENT_MID": {
+        "type": "color",
+        "value": "PREMIUM_TIER_2_PURPLE_FOR_GRADIENTS_2"
+      },
+      "BADGE_PREMIUM_BACKGROUND_GRADIENT_START": {
+        "type": "color",
+        "value": "PREMIUM_TIER_2_PURPLE_FOR_GRADIENTS"
+      },
+      "BADGE_PREMIUM_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_PRIMARY_BACKGROUND": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "BADGE_PRIMARY_BORDER": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "BADGE_PRIMARY_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_RARE_BACKGROUND": {
+        "type": "color",
+        "value": "ILLO_BLUE_40",
+        "opacity": 0.24
+      },
+      "BADGE_RARE_BORDER_GRADIENT_START": {
+        "type": "color",
+        "value": "ILLO_BLUE_40"
+      },
+      "BADGE_RARE_TEXT": {
+        "type": "color",
+        "value": "ILLO_BLUE_30"
+      },
+      "BADGE_SECONDARY_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "BADGE_SECONDARY_BORDER": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "BADGE_SECONDARY_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "BADGE_SUCCESS_BACKGROUND": {
+        "type": "color",
+        "value": "GREEN_NEW_50"
+      },
+      "BADGE_SUCCESS_BORDER": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "BADGE_SUCCESS_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "BADGE_WARNING_BACKGROUND": {
+        "type": "color",
+        "value": "YELLOW_NEW_45"
+      },
+      "BADGE_WARNING_BORDER": {
+        "type": "color",
+        "value": "OPACITY_BLACK_8",
+        "opacity": 0.0784313725490196
+      },
+      "BADGE_WARNING_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "BG_SURFACE_RAISED": {
+        "type": "color",
+        "value": "PLUM_23"
+      },
+      "BLACK": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "BLUR_FALLBACK": {
+        "type": "color",
+        "value": "PLUM_19",
+        "opacity": 0.96
+      },
+      "BLUR_FALLBACK_PRESSED": {
+        "type": "color",
+        "value": "PLUM_20",
+        "opacity": 0.96
+      },
+      "BORDER_FEEDBACK_CRITICAL": {
+        "type": "color",
+        "value": "RED_NEW_37"
+      },
+      "BORDER_FEEDBACK_INFO": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "BORDER_FEEDBACK_POSITIVE": {
+        "type": "color",
+        "value": "GREEN_NEW_39"
+      },
+      "BORDER_FEEDBACK_WARNING": {
+        "type": "color",
+        "value": "YELLOW_NEW_59"
+      },
+      "BORDER_FOCUS": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "BORDER_MUTED": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "BORDER_NORMAL": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "BORDER_STRONG": {
+        "type": "color",
+        "value": "OPACITY_44",
+        "opacity": 0.4392156862745098
+      },
+      "BORDER_SUBTLE": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "BORDER_VOICE_MUTED": {
+        "type": "color",
+        "value": "OPACITY_RED_12",
+        "opacity": 0.12156862745098039
+      },
+      "BUTTON_DANGER_BACKGROUND_DISABLED": {
+        "type": "color",
+        "value": "RED_NEW_50"
+      },
+      "BUTTON_OUTLINE_BRAND_BACKGROUND_HOVER": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "BUTTON_OUTLINE_BRAND_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "BUTTON_OUTLINE_PRIMARY_TEXT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "CARD_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "CARD_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "CARD_MUTED_BG": {
+        "type": "color",
+        "value": "OPACITY_8",
+        "opacity": 0.0784313725490196
+      },
+      "CARD_MUTED_PRESSED_BG": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "CARD_PRIMARY_PRESSED_BG": {
+        "type": "color",
+        "value": "PLUM_25"
+      },
+      "CARD_SECONDARY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "CARD_SECONDARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "CARD_SECONDARY_BG": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "CARD_SECONDARY_PRESSED_BG": {
+        "type": "color",
+        "value": "PLUM_26"
+      },
+      "CHANNEL_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "CHANNEL_ICON": {
+        "type": "color",
+        "value": "NEUTRAL_37"
+      },
+      "CHANNELS_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_37"
+      },
+      "CHANNELTEXTAREA_BACKGROUND": {
+        "type": "color",
+        "value": "PLUM_23"
+      },
+      "CHAT_BANNER_BG": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "CHAT_BORDER": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "CHAT_INPUT_ACTION_BUTTON_BACKGROUND": {
+        "type": "color",
+        "value": "TRANSPARENT",
+        "opacity": 0
+      },
+      "CHAT_INPUT_ACTION_BUTTON_ICON_DEFAULT_TINT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "CHAT_INPUT_ACTION_ICON_ACTIVE_TINT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "CHAT_INPUT_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_BLACK_12",
+        "opacity": 0.12156862745098039
+      },
+      "CHAT_INPUT_ICON_DEFAULT_TINT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "CHAT_INPUT_SEND_BUTTON_ACTIVE_BACKGROUND": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "CHAT_INPUT_SEND_BUTTON_ICON_ACTIVE_TINT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CHECKBOX_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_BLACK_8",
+        "opacity": 0.0784313725490196
+      },
+      "CHECKBOX_BACKGROUND_SELECTED_DEFAULT": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "CHECKBOX_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_64",
+        "opacity": 0.6392156862745098
+      },
+      "CHECKBOX_BORDER_SELECTED_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "CHECKBOX_ICON_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CONTENT_INVENTORY_OVERLAY_TEXT_PRIMARY": {
+        "type": "color",
+        "value": "WHITE",
+        "opacity": 0.85
+      },
+      "CONTENT_INVENTORY_OVERLAY_TEXT_SECONDARY": {
+        "type": "color",
+        "value": "WHITE",
+        "opacity": 0.7
+      },
+      "CONTEXT_MENU_BACKDROP_BACKGROUND": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.7
+      },
+      "CONTROL_BRAND_FOREGROUND": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "CONTROL_BRAND_FOREGROUND_NEW": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "CONTROL_CONNECTED_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "GREEN_NEW_65"
+      },
+      "CONTROL_CONNECTED_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "GREEN_NEW_50"
+      },
+      "CONTROL_CONNECTED_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "CONTROL_CONNECTED_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "CONTROL_CONNECTED_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CONTROL_CRITICAL_PRIMARY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "RED_NEW_65"
+      },
+      "CONTROL_CRITICAL_PRIMARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "RED_NEW_50"
+      },
+      "CONTROL_CRITICAL_PRIMARY_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "CONTROL_CRITICAL_PRIMARY_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "CONTROL_CRITICAL_PRIMARY_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CONTROL_CRITICAL_SECONDARY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "CONTROL_CRITICAL_SECONDARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "CONTROL_CRITICAL_SECONDARY_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "CONTROL_CRITICAL_SECONDARY_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "CONTROL_CRITICAL_SECONDARY_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "RED_NEW_37"
+      },
+      "CONTROL_EXPRESSIVE_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CONTROL_EXPRESSIVE_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "CONTROL_ICON_ONLY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "CONTROL_ICON_ONLY_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "CONTROL_ICON_ONLY_ICON_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "CONTROL_ICON_ONLY_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "CONTROL_OVERLAY_PRIMARY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_17"
+      },
+      "CONTROL_OVERLAY_PRIMARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CONTROL_OVERLAY_PRIMARY_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "CONTROL_OVERLAY_PRIMARY_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "CONTROL_OVERLAY_SECONDARY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_BLACK_56",
+        "opacity": 0.5607843137254902
+      },
+      "CONTROL_OVERLAY_SECONDARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_BLACK_56",
+        "opacity": 0.5607843137254902
+      },
+      "CONTROL_OVERLAY_SECONDARY_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "CONTROL_OVERLAY_SECONDARY_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CONTROL_PRIMARY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "CONTROL_PRIMARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "CONTROL_PRIMARY_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "CONTROL_PRIMARY_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_WHITE_8",
+        "opacity": 0.0784313725490196
+      },
+      "CONTROL_PRIMARY_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "CONTROL_SECONDARY_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "CONTROL_SECONDARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "CONTROL_SECONDARY_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "CONTROL_SECONDARY_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "CONTROL_SECONDARY_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "CUSTOM_STATUS_BUBBLE_BG": {
+        "type": "color",
+        "value": "NEUTRAL_88"
+      },
+      "DATEPICKER_RANGE_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_40",
+        "opacity": 0.4
+      },
+      "DATEPICKER_RANGE_BACKGROUND_HOVER": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_60",
+        "opacity": 0.6
+      },
+      "EMBED_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "EMBED_BACKGROUND_ALTERNATE": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "EXPRESSIVE_GRADIENT_BLUE_END": {
+        "type": "color",
+        "value": "ILLO_BLUE_60",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_BLUE_START": {
+        "type": "color",
+        "value": "ILLO_BLUE_40",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_GREEN_END": {
+        "type": "color",
+        "value": "ILLO_GREEN_70",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_GREEN_START": {
+        "type": "color",
+        "value": "ILLO_GREEN_50",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_NITRO_GREEN_END": {
+        "type": "color",
+        "value": "ILLO_NITRO_BLUE",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_NITRO_GREEN_START": {
+        "type": "color",
+        "value": "ILLO_GREEN_50",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_NITRO_PINK_END": {
+        "type": "color",
+        "value": "ILLO_NITRO_BLUE",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_NITRO_PINK_START": {
+        "type": "color",
+        "value": "ILLO_PINK_60",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_PINK_END": {
+        "type": "color",
+        "value": "ILLO_PINK_70",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_PINK_START": {
+        "type": "color",
+        "value": "ILLO_PINK_50",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_PURPLE_END": {
+        "type": "color",
+        "value": "ILLO_PURPLE_60",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_PURPLE_START": {
+        "type": "color",
+        "value": "ILLO_PURPLE_40",
+        "opacity": 0.25
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_BRONZE_END": {
+        "type": "color",
+        "value": "ILLO_ORANGE_70",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_BRONZE_START": {
+        "type": "color",
+        "value": "ILLO_ORANGE_30",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_DIAMOND_END": {
+        "type": "color",
+        "value": "ILLO_PURPLE_50",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_DIAMOND_START": {
+        "type": "color",
+        "value": "ILLO_PURPLE_40",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_EMERALD_END": {
+        "type": "color",
+        "value": "ILLO_GREEN_60",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_EMERALD_START": {
+        "type": "color",
+        "value": "ILLO_GREEN_40",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_GOLD_END": {
+        "type": "color",
+        "value": "YELLOW_NEW_41",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_GOLD_START": {
+        "type": "color",
+        "value": "ILLO_YELLOW_50",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_OPAL_END": {
+        "type": "color",
+        "value": "WHITE",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_OPAL_START": {
+        "type": "color",
+        "value": "TEAL_NEW_30",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_PLATINUM_END": {
+        "type": "color",
+        "value": "TEAL_NEW_60",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_PLATINUM_START": {
+        "type": "color",
+        "value": "TEAL_NEW_20",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_RUBY_END": {
+        "type": "color",
+        "value": "RED_NEW_80",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_RUBY_START": {
+        "type": "color",
+        "value": "RED_NEW_44",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_SILVER_END": {
+        "type": "color",
+        "value": "NEUTRAL_58",
+        "opacity": 0.3
+      },
+      "EXPRESSIVE_GRADIENT_TENURE_BADGE_SILVER_START": {
+        "type": "color",
+        "value": "NEUTRAL_12",
+        "opacity": 0.3
+      },
+      "GRADIENT_PROGRESS_PILL_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_66"
+      },
+      "GUILD_FOLDER_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "GUILD_NOTIFICATIONS_BOTTOM_SHEET_PILL_BACKGROUND": {
+        "type": "color",
+        "value": "PRIMARY_700"
+      },
+      "GUILD_PROFILE_BANNER_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "HEXAGON_CAMPAIGN_PROMO_GRADIENT_1": {
+        "type": "color",
+        "value": "BG_GRADIENT_HEXAGON_PROMO_1",
+        "opacity": 0.6
+      },
+      "HEXAGON_CAMPAIGN_PROMO_GRADIENT_2": {
+        "type": "color",
+        "value": "BG_GRADIENT_HEXAGON_PROMO_2",
+        "opacity": 0.6
+      },
+      "HEXAGON_CAMPAIGN_PROMO_GRADIENT_3": {
+        "type": "color",
+        "value": "BG_GRADIENT_HEXAGON_PROMO_3",
+        "opacity": 0.6
+      },
+      "HEXAGON_CAMPAIGN_PROMO_GRADIENT_4": {
+        "type": "color",
+        "value": "BG_GRADIENT_HEXAGON_PROMO_4",
+        "opacity": 0.6
+      },
+      "HEXAGON_CAMPAIGN_PROMO_GRADIENT_SHADE": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.52
+      },
+      "ICON_BRAND": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "ICON_FEEDBACK_CRITICAL": {
+        "type": "color",
+        "value": "RED_NEW_37"
+      },
+      "ICON_FEEDBACK_INFO": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "ICON_FEEDBACK_NOTIFICATION": {
+        "type": "color",
+        "value": "RED_NEW_50"
+      },
+      "ICON_FEEDBACK_POSITIVE": {
+        "type": "color",
+        "value": "GREEN_NEW_39"
+      },
+      "ICON_FEEDBACK_WARNING": {
+        "type": "color",
+        "value": "YELLOW_NEW_59"
+      },
+      "ICON_MUTED": {
+        "type": "color",
+        "value": "NEUTRAL_35"
+      },
+      "ICON_OVERLAY_DARK": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "ICON_OVERLAY_LIGHT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "ICON_STATUS_DND": {
+        "type": "color",
+        "value": "RED_NEW_45"
+      },
+      "ICON_STATUS_IDLE": {
+        "type": "color",
+        "value": "YELLOW_NEW_22"
+      },
+      "ICON_STATUS_OFFLINE": {
+        "type": "color",
+        "value": "NEUTRAL_27"
+      },
+      "ICON_STATUS_ONLINE": {
+        "type": "color",
+        "value": "GREEN_NEW_40"
+      },
+      "ICON_STRONG": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "ICON_SUBTLE": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "ICON_TRANSPARENT": {
+        "type": "color",
+        "value": "TRANSPARENT",
+        "opacity": 0
+      },
+      "ICON_VOICE_CONNECTED": {
+        "type": "color",
+        "value": "GREEN_NEW_40"
+      },
+      "ICON_VOICE_DISCONNECTED": {
+        "type": "color",
+        "value": "RED_NEW_37"
+      },
+      "ICON_VOICE_MUTED": {
+        "type": "color",
+        "value": "RED_NEW_46"
+      },
+      "ICON_VOICE_SPEAKING": {
+        "type": "color",
+        "value": "GREEN_NEW_40"
+      },
+      "INLINENOTICE_BORDER_CRITICAL": {
+        "type": "color",
+        "value": "OPACITY_RED_60",
+        "opacity": 0.6
+      },
+      "INLINENOTICE_BORDER_INFO": {
+        "type": "color",
+        "value": "OPACITY_BLUE_60",
+        "opacity": 0.6
+      },
+      "INLINENOTICE_BORDER_POSITIVE": {
+        "type": "color",
+        "value": "OPACITY_GREEN_60",
+        "opacity": 0.6
+      },
+      "INLINENOTICE_BORDER_WARNING": {
+        "type": "color",
+        "value": "OPACITY_YELLOW_72",
+        "opacity": 0.7215686274509804
+      },
+      "INPUT_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_BLACK_12",
+        "opacity": 0.12156862745098039
+      },
+      "INPUT_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "INPUT_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "INPUT_BORDER_ERROR_DEFAULT": {
+        "type": "color",
+        "value": "RED_NEW_37"
+      },
+      "INPUT_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "INPUT_PLACEHOLDER_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_36"
+      },
+      "INPUT_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "INPUT_TEXT_ERROR_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "INTERACTIVE_ACCENT_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "INTERACTIVE_ACCENT_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "INTERACTIVE_ACCENT_BACKGROUND_SELECTED": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "INTERACTIVE_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "INTERACTIVE_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_8",
+        "opacity": 0.0784313725490196
+      },
+      "INTERACTIVE_BACKGROUND_HOVER": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "INTERACTIVE_BACKGROUND_SELECTED": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "INTERACTIVE_ICON_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "INTERACTIVE_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "INTERACTIVE_ICON_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "INTERACTIVE_MUTED": {
+        "type": "color",
+        "value": "PLUM_13"
+      },
+      "INTERACTIVE_TEXT_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "INTERACTIVE_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "INTERACTIVE_TEXT_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "KEYWORD_HIGHLIGHT_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "LEGACY_ANDROID_BLUR_OVERLAY_DEFAULT": {
+        "type": "color",
+        "value": "PRIMARY_660",
+        "opacity": 0.5
+      },
+      "LEGACY_ANDROID_BLUR_OVERLAY_ULTRA_THIN": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.025
+      },
+      "LEGACY_BLUR_FALLBACK_DEFAULT": {
+        "type": "color",
+        "value": "PRIMARY_660",
+        "opacity": 0.975
+      },
+      "LEGACY_BLUR_FALLBACK_ULTRA_THIN": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.95
+      },
+      "MENTION_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_24",
+        "opacity": 0.23921568627450981
+      },
+      "MENTION_FOREGROUND": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "MESSAGE_AUTOMOD_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "RED_345",
+        "opacity": 0.08
+      },
+      "MESSAGE_AUTOMOD_BACKGROUND_HOVER": {
+        "type": "color",
+        "value": "RED_400",
+        "opacity": 0.1
+      },
+      "MESSAGE_BACKGROUND_HOVER": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "MESSAGE_HIGHLIGHT_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_16",
+        "opacity": 0.1607843137254902
+      },
+      "MESSAGE_HIGHLIGHT_BACKGROUND_HOVER": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_12",
+        "opacity": 0.12156862745098039
+      },
+      "MESSAGE_MENTIONED_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_YELLOW_8",
+        "opacity": 0.0784313725490196
+      },
+      "MESSAGE_MENTIONED_BACKGROUND_HOVER": {
+        "type": "color",
+        "value": "OPACITY_YELLOW_4",
+        "opacity": 0.0392156862745098
+      },
+      "MESSAGES_ITEM_CHANNEL_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "MOBILE_ACTIONSHEET_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_ACTIONSHEET_GRADIENT_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_ALERT_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_ANDROID_BUTTON_BACKGROUND_RIPPLE": {
+        "type": "color",
+        "value": "WHITE",
+        "opacity": 0.07
+      },
+      "MOBILE_BACKGROUND_SCRIM_OPAQUE": {
+        "type": "color",
+        "value": "PLUM_19"
+      },
+      "MOBILE_CHANNEL_ITEM_BACKGROUND_SELECTED": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "MOBILE_CHAT_NEW_MESSAGE_BORDER": {
+        "type": "color",
+        "value": "RED_NEW_46",
+        "opacity": 0.44
+      },
+      "MOBILE_CHAT_NEW_MESSAGE_TEXT": {
+        "type": "color",
+        "value": "RED_NEW_34"
+      },
+      "MOBILE_CHATINPUT_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_87"
+      },
+      "MOBILE_CHATINPUT_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_87"
+      },
+      "MOBILE_CHATINPUT_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "MOBILE_CHATINPUT_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "MOBILE_COACHMARK_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_COACHMARK_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "MOBILE_COMMAND_BAR_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "MOBILE_COMMAND_BAR_DIVIDER": {
+        "type": "color",
+        "value": "OPACITY_16",
+        "opacity": 0.1607843137254902
+      },
+      "MOBILE_COMMAND_CATEGORIES_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_EMBED_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_EMOJI_BUTTON_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "MOBILE_EXPRESSION_PICKER_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_FLOATING_ACCESSORY_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_FLOATING_ACCESSORY_BORDER": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "MOBILE_FLOATINGBAR_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_FLOATINGBAR_BACKGROUND_HIGHER": {
+        "type": "color",
+        "value": "NEUTRAL_92"
+      },
+      "MOBILE_FLOATINGBAR_BACKGROUND_NAMEPLATE": {
+        "type": "color",
+        "value": "NEUTRAL_88"
+      },
+      "MOBILE_FLOATINGBAR_BACKGROUND_SCRIM": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "MOBILE_GUILDBAR_ICON_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "MOBILE_GUILDBAR_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "MOBILE_HEADER_BORDER": {
+        "type": "color",
+        "value": "OPACITY_44",
+        "opacity": 0.4392156862745098
+      },
+      "MOBILE_HEADER_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "MOBILE_KEYBOARD_GAP_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "MOBILE_KEYBOARD_PANEL_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_LEGACY_BUTTON_SECONDARY_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "PLUM_17"
+      },
+      "MOBILE_LEGACY_BUTTON_SECONDARY_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "MOBILE_LEGACY_BUTTON_SECONDARY_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "MOBILE_SEARCHBAR_GRADIENT_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "MOBILE_SEGMENTED_CONTROL_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "MOBILE_SEGMENTED_CONTROL_INDICATOR_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "MOBILE_TEXT_HEADING_PRIMARY": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "MOBILE_THREAD_EMBED_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_TOAST_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_88"
+      },
+      "MOBILE_TYPING_INDICATOR_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "MOBILE_UNREADBAR_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "MOBILE_VOICE_MESSAGE_RECORDING_LOCK_BACKGROUND_ACTIVE": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "MOBILE_VOICE_MESSAGE_RECORDING_LOCK_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MOBILE_VOICE_MESSAGE_RECORDING_LOCK_ICON_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "MOBILE_VOICE_MESSAGE_RECORDING_LOCK_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "MOBILE_VOICE_MESSAGE_RECORDING_SPINNER_COLOR": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "MOBILE_VOICE_MESSAGE_RECORDING_WAVEFORM_BAR_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "MOBILE_VOICE_PANEL_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "MOBILE_VOICE_PANEL_BADGE_BACKGROUND": {
+        "type": "color",
+        "value": "TRANSPARENT",
+        "opacity": 0
+      },
+      "MODAL_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "MODAL_FOOTER_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_96"
+      },
+      "NAVIGATOR_HEADER_TINT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "NOTICE_BACKGROUND_POSITIVE": {
+        "type": "color",
+        "value": "GREEN_NEW_100"
+      },
+      "OVERLAY_BACKDROP_LIGHTBOX": {
+        "type": "color",
+        "value": "OPACITY_BLACK_92",
+        "opacity": 0.9215686274509803
+      },
+      "PANEL_BG": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "POLLS_NORMAL_IMAGE_BACKGROUND": {
+        "type": "color",
+        "value": "PRIMARY_660"
+      },
+      "POLLS_VICTOR_FILL": {
+        "type": "color",
+        "value": "GREEN_360",
+        "opacity": 0.2
+      },
+      "POLLS_VOTED_FILL": {
+        "type": "color",
+        "value": "WHITE",
+        "opacity": 0.2
+      },
+      "PREMIUM_NITRO_PINK_TEXT": {
+        "type": "color",
+        "value": "PINK_57"
+      },
+      "PROFILE_GRADIENT_NOTE_BACKGROUND": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.3
+      },
+      "PROFILE_GRADIENT_OVERLAY": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.6
+      },
+      "PROFILE_GRADIENT_OVERLAY_SYNCED_WITH_USER_THEME": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.8
+      },
+      "PROFILE_GRADIENT_ROLE_PILL_BACKGROUND": {
+        "type": "color",
+        "value": "PRIMARY_660",
+        "opacity": 0.5
+      },
+      "PROFILE_GRADIENT_ROLE_PILL_BORDER": {
+        "type": "color",
+        "value": "WHITE",
+        "opacity": 0.2
+      },
+      "PROFILE_GRADIENT_SECTION_BOX": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.45
+      },
+      "PROGRESSBAR_INDICATOR_BACKGROUND": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "PROGRESSBAR_TRACK_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "RADIO_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_64",
+        "opacity": 0.6392156862745098
+      },
+      "REACTION_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "REACTION_BACKGROUND_REACTED_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_24",
+        "opacity": 0.23921568627450981
+      },
+      "REACTION_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "REACTION_BORDER_REACTED_DEFAULT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "REACTION_TEXT_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "REACTION_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "REACTION_TEXT_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "REACTION_TEXT_REACTED_DEFAULT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "REDESIGN_ACTIVITY_CARD_BADGE_ICON": {
+        "type": "color",
+        "value": "PLUM_11"
+      },
+      "REDESIGN_BUTTON_PREMIUM_PRIMARY_PINK_FOR_GRADIENT": {
+        "type": "color",
+        "value": "PREMIUM_TIER_2_PINK_FOR_GRADIENTS"
+      },
+      "REDESIGN_BUTTON_PREMIUM_PRIMARY_PRESSED_BACKGROUND": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.1
+      },
+      "REDESIGN_BUTTON_PREMIUM_PRIMARY_PURPLE_FOR_GRADIENT": {
+        "type": "color",
+        "value": "PREMIUM_TIER_2_PURPLE_FOR_GRADIENTS"
+      },
+      "REDESIGN_BUTTON_PREMIUM_PRIMARY_PURPLE_FOR_GRADIENT_2": {
+        "type": "color",
+        "value": "PREMIUM_TIER_2_PURPLE_FOR_GRADIENTS_2"
+      },
+      "REDESIGN_BUTTON_TERTIARY_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_1",
+        "opacity": 0.000196078431372549
+      },
+      "REDESIGN_BUTTON_TERTIARY_PRESSED_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "REDESIGN_BUTTON_TERTIARY_PRESSED_TEXT": {
+        "type": "color",
+        "value": "PLUM_6"
+      },
+      "REDESIGN_BUTTON_TERTIARY_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "REDESIGN_CHANNEL_NAME_MUTED_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_35"
+      },
+      "REDESIGN_CHANNEL_NAME_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "REDESIGN_CHAT_INPUT_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_BLACK_12",
+        "opacity": 0.12156862745098039
+      },
+      "REDESIGN_IMAGE_BUTTON_PRESSED_BACKGROUND": {
+        "type": "color",
+        "value": "BLACK",
+        "opacity": 0.08
+      },
+      "REDESIGN_INPUT_CONTROL_ACTIVE_BG": {
+        "type": "color",
+        "value": "PLUM_17"
+      },
+      "REDESIGN_INPUT_CONTROL_SELECTED": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "SHARE_CHAT_INPUT_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_93"
+      },
+      "SLIDER_TRACK_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_65"
+      },
+      "SPINE_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_65"
+      },
+      "SPOILER_HIDDEN_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_47"
+      },
+      "SPOILER_REVEALED_BACKGROUND": {
+        "type": "color",
+        "value": "PLUM_11",
+        "opacity": 0.16
+      },
+      "STAGE_CARD_PILL_BG": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "STANDALONE_CHANNEL_CONTENT_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "STANDALONE_CHANNEL_HEADER_BORDER": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "STATUS_DANGER": {
+        "type": "color",
+        "value": "RED_400"
+      },
+      "STATUS_ONLINE": {
+        "type": "color",
+        "value": "GREEN_360"
+      },
+      "STATUS_POSITIVE": {
+        "type": "color",
+        "value": "GREEN_360"
+      },
+      "STATUS_POSITIVE_BACKGROUND": {
+        "type": "color",
+        "value": "GREEN_430"
+      },
+      "STATUS_POSITIVE_TEXT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "STATUS_SPEAKING": {
+        "type": "color",
+        "value": "GREEN_360"
+      },
+      "STATUS_WARNING": {
+        "type": "color",
+        "value": "YELLOW_300"
+      },
+      "STATUS_WARNING_BACKGROUND": {
+        "type": "color",
+        "value": "YELLOW_300"
+      },
+      "STATUS_WARNING_TEXT": {
+        "type": "color",
+        "value": "BLACK"
+      },
+      "STEAM_REVIEW_TEXT_MIXED": {
+        "type": "color",
+        "value": "YELLOW_NEW_57"
+      },
+      "STEAM_REVIEW_TEXT_NEGATIVE": {
+        "type": "color",
+        "value": "RED_NEW_42"
+      },
+      "STEAM_REVIEW_TEXT_POSITIVE": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "SWITCH_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_BLACK_12",
+        "opacity": 0.12156862745098039
+      },
+      "SWITCH_BACKGROUND_SELECTED_DEFAULT": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "SWITCH_BORDER_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "SWITCH_BORDER_SELECTED_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "SWITCH_THUMB_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "SWITCH_THUMB_BACKGROUND_SELECTED_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "SWITCH_THUMB_ICON_ACTIVE": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "SWITCH_THUMB_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_71"
+      },
+      "TAB_BAR_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "TAB_LABEL_TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "TAB_LABEL_TEXT_FOCUSED": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TABLEROW_BACKGROUND_DEFAULT": {
+        "type": "color",
+        "value": "OPACITY_8",
+        "opacity": 0.0784313725490196
+      },
+      "TABLEROW_BACKGROUND_PRESSED": {
+        "type": "color",
+        "value": "OPACITY_20",
+        "opacity": 0.2
+      },
+      "TABLEROW_ICON_COLOR_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TEXT_BRAND": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "TEXT_CODE": {
+        "type": "color",
+        "value": "NEUTRAL_15"
+      },
+      "TEXT_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "TEXT_FEEDBACK_CRITICAL": {
+        "type": "color",
+        "value": "RED_NEW_37"
+      },
+      "TEXT_FEEDBACK_INFO": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "TEXT_FEEDBACK_POSITIVE": {
+        "type": "color",
+        "value": "GREEN_NEW_39"
+      },
+      "TEXT_FEEDBACK_WARNING": {
+        "type": "color",
+        "value": "YELLOW_NEW_59"
+      },
+      "TEXT_LINK": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "TEXT_MUTED": {
+        "type": "color",
+        "value": "NEUTRAL_35"
+      },
+      "TEXT_OVERLAY_DARK": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "TEXT_OVERLAY_LIGHT": {
+        "type": "color",
+        "value": "NEUTRAL_1"
+      },
+      "TEXT_STATUS_DND": {
+        "type": "color",
+        "value": "RED_NEW_45"
+      },
+      "TEXT_STATUS_IDLE": {
+        "type": "color",
+        "value": "YELLOW_NEW_22"
+      },
+      "TEXT_STATUS_OFFLINE": {
+        "type": "color",
+        "value": "NEUTRAL_27"
+      },
+      "TEXT_STATUS_ONLINE": {
+        "type": "color",
+        "value": "GREEN_NEW_40"
+      },
+      "TEXT_STRONG": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TEXT_SUBTLE": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "TEXT_VOICE_CONNECTED": {
+        "type": "color",
+        "value": "GREEN_NEW_40"
+      },
+      "TEXT_VOICE_DISCONNECTED": {
+        "type": "color",
+        "value": "RED_NEW_37"
+      },
+      "TEXT_VOICE_SPEAKING": {
+        "type": "color",
+        "value": "GREEN_NEW_40"
+      },
+      "THEME_LOCKED_BLUR_FALLBACK": {
+        "type": "color",
+        "value": "PRIMARY_700",
+        "opacity": 0.96
+      },
+      "THREAD_CHANNEL_SPINE": {
+        "type": "color",
+        "value": "PLUM_13"
+      },
+      "TOAST_CRITICAL_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_RED_12",
+        "opacity": 0.12156862745098039
+      },
+      "TOAST_CRITICAL_BORDER": {
+        "type": "color",
+        "value": "RED_NEW_42"
+      },
+      "TOAST_SUCCESS_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_GREEN_12",
+        "opacity": 0.12156862745098039
+      },
+      "TOAST_SUCCESS_BORDER": {
+        "type": "color",
+        "value": "GREEN_NEW_42"
+      },
+      "TOGGLEBUTTON_BACKGROUND_SELECTED": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_16",
+        "opacity": 0.1607843137254902
+      },
+      "TOGGLEBUTTON_BACKGROUND_SELECTED_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "TOGGLEBUTTON_BACKGROUND_SELECTED_HOVER": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_24",
+        "opacity": 0.23921568627450981
+      },
+      "TOGGLEBUTTON_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_BLURPLE_84",
+        "opacity": 0.8392156862745098
+      },
+      "TOGGLEBUTTON_BORDER_SELECTED": {
+        "type": "color",
+        "value": "WHITE"
+      },
+      "TOGGLEBUTTON_CRITICAL_BACKGROUND_SELECTED": {
+        "type": "color",
+        "value": "OPACITY_RED_12",
+        "opacity": 0.12156862745098039
+      },
+      "TOGGLEBUTTON_CRITICAL_BACKGROUND_SELECTED_HOVER": {
+        "type": "color",
+        "value": "OPACITY_RED_16",
+        "opacity": 0.1607843137254902
+      },
+      "TOGGLEBUTTON_CRITICAL_BORDER_ACTIVE": {
+        "type": "color",
+        "value": "OPACITY_RED_32",
+        "opacity": 0.3215686274509804
+      },
+      "TOGGLEBUTTON_CRITICAL_ICON_ACTIVE": {
+        "type": "color",
+        "value": "RED_NEW_46"
+      },
+      "TOGGLEBUTTON_CRITICAL_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "TOGGLEBUTTON_CRITICAL_ICON_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "TOGGLEBUTTON_CRITICAL_ICON_SELECTED": {
+        "type": "color",
+        "value": "RED_NEW_46"
+      },
+      "TOGGLEBUTTON_CRITICAL_ICON_SELECTED_HOVER": {
+        "type": "color",
+        "value": "RED_NEW_46"
+      },
+      "TOGGLEBUTTON_ICON_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "TOGGLEBUTTON_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "TOGGLEBUTTON_ICON_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "TOGGLEBUTTON_ICON_ONLY_ICON_ACTIVE": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TOGGLEBUTTON_ICON_ONLY_ICON_DEFAULT": {
+        "type": "color",
+        "value": "NEUTRAL_12"
+      },
+      "TOGGLEBUTTON_ICON_ONLY_ICON_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TOGGLEBUTTON_ICON_ONLY_ICON_SELECTED": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TOGGLEBUTTON_ICON_ONLY_ICON_SELECTED_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TOGGLEBUTTON_ICON_SELECTED": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "TOGGLEBUTTON_ICON_SELECTED_HOVER": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "USER_PROFILE_ABOUT_ME_HEADING_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_10"
+      },
+      "USER_PROFILE_CONTAINER_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_12",
+        "opacity": 0.12156862745098039
+      },
+      "USER_PROFILE_GRADIENT_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "VOICE_CHANNEL_USER_LIMIT_ACCENT_BACKGROUND": {
+        "type": "color",
+        "value": "OPACITY_24",
+        "opacity": 0.23921568627450981
+      },
+      "VOICE_CHANNEL_USER_LIMIT_BACKGROUND": {
+        "type": "color",
+        "value": "NEUTRAL_100"
+      },
+      "VOICE_CHANNEL_USER_LIMIT_ICON": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "VOICE_CHANNEL_USER_LIMIT_TEXT": {
+        "type": "color",
+        "value": "NEUTRAL_29"
+      },
+      "VOICE_VIDEO_VIDEO_TILE_BACKGROUND": {
+        "type": "color",
+        "value": "PLUM_17",
+        "opacity": 0.4
+      },
+      "VOICE_VIDEO_VIDEO_TILE_BLUR_FALLBACK": {
+        "type": "color",
+        "value": "PRIMARY_700",
+        "opacity": 0.48
+      },
+      "WHITE": {
+        "type": "color",
+        "value": "WHITE"
+      }
+    }
+  }
 }

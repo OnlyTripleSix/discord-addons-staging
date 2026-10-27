@@ -7,7 +7,7 @@
 
   const { React, ReactNative: RN } = V.metro.common;
   const { instead, after } = V.patcher;
-  const VERSION = "1.6.0-shiggy";
+  const VERSION = "1.6.1-shiggy";
   const RUNTIME_KEY = "__itsTripleSixOnyxMonochromeRuntime";
 
   try { globalThis[RUNTIME_KEY]?.cleanup?.(); } catch {}
@@ -183,6 +183,114 @@
     );
 
     return true;
+  }
+
+  function moduleByPath(path, exportDefault = false) {
+    try {
+      return B?.metro?.findByFilePath?.(path, exportDefault)
+        ?? B?.metro?.findByFilePathLazy?.(path, exportDefault)
+        ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  function installButtonHooksGuard() {
+    const mod = moduleByPath(PATHS.buttonHooks, false);
+    if (!mod) return false;
+
+    let armed = false;
+
+    try {
+      if (typeof mod.useProfileThemedButtonStyles === "function") {
+        runtime.unpatches.push(
+          after("useProfileThemedButtonStyles", mod, (args, result) => {
+            const variant = String(args?.[0] ?? "primary");
+            if (variant !== "primary" || !result || typeof result !== "object") return result;
+
+            runtime.profileButtonHits += 1;
+            return {
+              ...result,
+              backgroundColor: ["#000000", "#000000"],
+              borderColor: ["#FFFFFF66", "#FFFFFF99"],
+              color: "#FFFFFF"
+            };
+          })
+        );
+        armed = true;
+      }
+
+      if (typeof mod.useButtonPillStyles === "function") {
+        runtime.unpatches.push(
+          after("useButtonPillStyles", mod, (args, result) => {
+            const variant = String(args?.[0] ?? "primary");
+            if (variant !== "primary" || !result || typeof result !== "object") return result;
+
+            runtime.buttonHits += 1;
+            return {
+              ...result,
+              backgroundColor: "#000000",
+              borderColor: "#FFFFFF66"
+            };
+          })
+        );
+        armed = true;
+      }
+
+      if (typeof mod.useButtonTextColorStyles === "function") {
+        runtime.unpatches.push(
+          after("useButtonTextColorStyles", mod, (args, result) => {
+            const variant = String(args?.[0] ?? "primary");
+            if (variant !== "primary" || !result || typeof result !== "object") return result;
+
+            runtime.buttonHits += 1;
+            return { ...result, color: "#FFFFFF" };
+          })
+        );
+        armed = true;
+      }
+
+      runtime.buttonHooks = armed;
+      return armed;
+    } catch {
+      return false;
+    }
+  }
+
+  function installIconActionGuard() {
+    const target = moduleByPath(PATHS.iconActionButton, true);
+    if (!target) return false;
+
+    try {
+      // findByFilePath(..., true) may return the function itself or a module-like object.
+      const holder = typeof target === "function" ? { default: target } : target;
+      if (typeof holder?.default !== "function") return false;
+
+      runtime.unpatches.push(
+        after("default", holder, (args, result) => {
+          const props = args?.[0] ?? {};
+          const variant = String(props?.variant ?? "filled");
+          if (variant !== "filled" || !React.isValidElement?.(result)) return result;
+
+          runtime.iconHits += 1;
+          return React.cloneElement(result, {
+            style: [
+              result.props?.style,
+              {
+                backgroundColor: "#000000",
+                borderWidth: 1,
+                borderColor: "#FFFFFF55"
+              }
+            ]
+          });
+        })
+      );
+
+      runtime.iconAction = true;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   function install() {
